@@ -6,7 +6,9 @@ import (
 	"time"
 )
 
-func HashPwd(pwd string) (Password, error) {
+var HashPwd = DefaultHashPwd
+
+func DefaultHashPwd(pwd string) (Password, error) {
 	p := Password{}
 	p.InitAt = time.Now()
 	p.Salt = securecookie.GenerateRandomKey(32)

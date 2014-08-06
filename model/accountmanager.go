@@ -18,7 +18,6 @@ var (
 	ErrDuplicateEmail  = errors.New("auth: duplicate email address")
 	ErrInvalidPassword = errors.New("auth: invalid password")
 	ErrNotLogged       = errors.New("auth: no login user found")
-	ErrNoProvider      = errors.New("auth: no provider found")
 )
 
 type User struct {
@@ -133,12 +132,11 @@ type UserManager interface {
 	// If limit < 0 the mean using the default upper limit.
 	// If limit == 0 return empty result with error indicate no result found.
 	// If limit can't be greater than the default upper limit.
-	// Specific fields name for porjection select, leave fields empty for select all.
-	// offset is valid only the sort field name given and match the field type.
-	FindAll(limit int, fields []string, sort string, offset interface{}) ([]*User, error)
+	// Specific fields name for porjection select.
+	FindAll(limit int, offsetId interface{}, fields []string) ([]*User, error)
 	// FindAllOnline finds and return a slice of current Loged user.
 	// See FindAll for the usage.
-	FindAllOnline(limit int, fields []string, sort string, offset interface{}) ([]*User, error)
+	FindAllOnline(limit int, offsetId interface{}, fields []string) ([]*User, error)
 	// Get gets the infomations and update the LastActivity of the current
 	// loged user by the token (given by Login method);
 	// It returns an error describes the first issue encountered, if any.
@@ -150,6 +148,4 @@ type UserManager interface {
 	Login(id interface{}, stay time.Duration) (string, error)
 	// Logout logs the current user out.
 	Logout(token string) error
-	// Can uses GroupManager to determines if user have privilege to do something.
-	Can(user *User, do string) bool
 }

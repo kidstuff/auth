@@ -40,9 +40,8 @@ type GroupManager interface {
 	// If limit < 0 the mean using the default upper limit.
 	// If limit == 0 return empty result with error indicate no result found.
 	// If limit can't be greater than the default upper limit.
-	// Specific fields name for porjection select, leave fields empty for select all.
-	// offset is valid only the sort field name given and match the field type.
-	FindAll(limit int, fields []string, sort string, offset interface{}) ([]*Group, error)
+	// Specific fields name for porjection select.
+	FindAll(limit int, offsetId interface{}, fields []string) ([]*Group, error)
 	// Delete deletes a group from database base on the given id;
 	// It returns an error describes the first issue encountered, if any.
 	Delete(id interface{}) error
