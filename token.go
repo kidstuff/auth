@@ -8,10 +8,6 @@ import (
 	"time"
 )
 
-var (
-	ErrInvalidCredential = errors.New("kidstuff/auth: Invlaid emaill or password")
-)
-
 func GetToken(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	grantType := req.FormValue("grant_type")
 	email := req.FormValue("email")

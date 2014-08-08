@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"errors"
+	"github.com/gorilla/mux"
 	"net/http"
 )
 
@@ -38,29 +39,33 @@ func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (in
 		return http.StatusInternalServerError, err
 	}
 
-	if app {
-		return http.StatusOK, nil
+	// TODO(!): think about send cofirm email
+	return http.StatusOK, nil
+}
+
+func Activate(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
+	vars := mux.Vars(req)
+	sid := vars["user_id"]
+
+	code := req.FormValue("code")
+	if len(sid) == 0 || len(code) == 0 {
+		return http.StatusBadRequest, ErrInvalidId
 	}
 
-	mailOpts, err := authCtx.Settings.Get("kidstuff.auth.regis.send_mail_confirm")
+	u, err := authCtx.Users.Find(sid)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	var message string
-
-	switch mailOpts {
-	case "notice":
-		message, err = authCtx.Settings.Get("kidstuff.auth.regis.notice_message")
-	case "confirm":
-		message, err = authCtx.Settings.Get("kidstuff.auth.regis.confirm_message")
+	if ok := u.ValidConfirmCode("activate", code, false, true); !ok {
+		return http.StatusPreconditionFailed, ErrInvalidActiveCode
 	}
 
-	println(message)
-
+	err = authCtx.Users.UpdateDetail(u)
 	if err != nil {
-		return http.StatusOK, err
+		return http.StatusInternalServerError, err
 	}
 
+	rw.Write([]byte(`{"Message":"Account activated"}`))
 	return http.StatusOK, nil
 }

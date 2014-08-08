@@ -13,34 +13,39 @@ var (
 	OnlineThreshold = time.Hour
 )
 
+type ctxKey int
+
+const (
+	userTokenKey ctxKey = iota
+	userCurrentKey
+)
+
 func Serve(router *mux.Router) {
-	if HandlerRegister == nil {
-		panic("kidstuff/auth: HandlerRegister need to be initialed by a mngr")
+	if HandlerRegister == nil || EqualIdChecker == nil {
+		panic("kidstuff/auth: need to be initialed by a mngr")
 	}
 
 	router.Handle("/tokens", HandlerRegister(GetToken, false, nil, nil))
+	router.Handle("/users/{user_id}/activate", HandlerRegister(Activate, false, nil, nil))
+	router.Handle("/users/{user_id}/password", HandlerRegister(UpdatePassword, true, nil, nil)).Methods("PUT")
+	router.Handle("/users/{user_id}", HandlerRegister(GetProfile, false, nil, nil)).Methods("GET")
+	router.Handle("/users/{user_id}", HandlerRegister(UpdateProfile, true, nil, nil)).Methods("PATCH")
+	router.Handle("/users", HandlerRegister(ListProfile, false, nil, nil))
 
 }
 
 type AuthContext struct {
-	Users       model.UserManager
-	Groups      model.GroupManager
-	Settings    model.Configurator
-	currentUser *model.User
-}
-
-func (ctx *AuthContext) CurrentUser(token string) (*model.User, error) {
-	var err error
-	if ctx.currentUser == nil {
-		ctx.currentUser, err = ctx.Users.Get(token)
-	}
-
-	return ctx.currentUser, err
+	Users    model.UserManager
+	Groups   model.GroupManager
+	Settings model.Configurator
 }
 
 type HandleFunc func(*AuthContext, http.ResponseWriter, *http.Request) (int, error)
 
-var HandlerRegister func(fn HandleFunc, owner bool, groups, pri []string) http.Handler
+var (
+	HandlerRegister func(fn HandleFunc, owner bool, groups, pri []string) http.Handler
+	EqualIdChecker  func(interface{}, string) bool
+)
 
 type BasicMngrHandler struct {
 	AuthContext
@@ -52,10 +57,9 @@ type BasicMngrHandler struct {
 
 func (h *BasicMngrHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	rw.Header().Set("Content-Type", "application/json; charset=utf-8")
-
-	if h.RequiredGroups != nil || h.RequiredPri != nil {
+	if h.RequiredGroups != nil || h.RequiredPri != nil || h.Owner {
 		token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
-		user, err := h.CurrentUser(token)
+		user, err := h.Users.Get(token)
 		if err != nil {
 			if err == model.ErrNotLogged {
 				JSONError(rw, err.Error(), http.StatusForbidden)
@@ -63,6 +67,15 @@ func (h *BasicMngrHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 			}
 
 			JSONError(rw, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// check for the current user
+		if h.Owner {
+			if EqualIdChecker(user.Id, mux.Vars(req)["user_id"]) {
+				goto NORMAL
+			}
+			JSONError(rw, ErrForbidden.Error(), http.StatusForbidden)
 			return
 		}
 
@@ -119,6 +132,8 @@ NORMAL:
 	if err != nil {
 		log.Printf("HTTP %d: %q", status, err)
 		JSONError(rw, err.Error(), status)
+	} else {
+		rw.WriteHeader(status)
 	}
 }
 
