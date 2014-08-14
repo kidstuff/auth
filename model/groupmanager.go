@@ -34,6 +34,8 @@ type GroupManager interface {
 	UpdateDetail(*Group) error
 	// Find find the group specific by id.
 	Find(id interface{}) (*Group, error)
+	// FindByName find the group specific by name.
+	FindByName(name string) (*Group, error)
 	// FindSome find and return a slice of group specific by thier id.
 	FindSome(id ...interface{}) ([]*Group, error)
 	// FindAll finds and return a slice of group.

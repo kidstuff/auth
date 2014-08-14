@@ -33,13 +33,11 @@ type User struct {
 	BriefGroups  []BriefGroup      `bson:"BriefGroups" json:",omitempty"`
 }
 
-func (u *User) SetPassword(pwd string) error {
-	panic("")
-}
-
 func (u *User) ChangePassword(pwd string) error {
-	var err error
-	u.OldPwd = append(u.OldPwd, *u.Pwd)
+	if u.Pwd != nil {
+		u.OldPwd = append(u.OldPwd, *u.Pwd)
+	}
+
 	hpwd, err := HashPwd(pwd)
 	if err != nil {
 		return err

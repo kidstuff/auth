@@ -3,9 +3,36 @@ package auth
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
 )
+
+func sendWelcomeMail(authCtx *AuthContext, email string) (int, error) {
+	if val, err := authCtx.Settings.
+		Get("auth.send_welcome_email"); err != nil || val != "true" {
+		return http.StatusOK, nil
+	}
+
+	mailSettings, err := authCtx.Settings.GetMulti([]string{
+		"auth.full_path",
+		"auth.welcome_email_subject",
+		"auth.welcome_email_message",
+		"auth.email_from",
+	})
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	err = DEFAULT_NOTIFICATOR.SendMail(mailSettings["auth.welcome_email_subject"],
+		mailSettings["auth.welcome_email_message"],
+		mailSettings["auth.email_from"], email)
+	if err != nil {
+		authCtx.Logs.Errorf("mail send error:%s", err)
+	}
+
+	return http.StatusOK, nil
+}
 
 func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	credential := struct {
@@ -25,7 +52,7 @@ func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (in
 
 	app := true
 	if val, err := authCtx.Settings.
-		Get("kidstuff.auth.regis.approve_new_user"); err != nil || val != "true" {
+		Get("auth.approve_new_user"); err != nil || val != "true" {
 		app = false
 	}
 
@@ -39,7 +66,35 @@ func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (in
 		return http.StatusInternalServerError, err
 	}
 
-	// TODO(!): think about send cofirm email
+	if app {
+		return sendWelcomeMail(authCtx, *u.Email)
+	} else {
+		if val, err := authCtx.Settings.
+			Get("auth.send_activate_email"); err != nil || val != "true" {
+			return http.StatusOK, nil
+		}
+
+		mailSettings, err := authCtx.Settings.GetMulti([]string{
+			"auth.full_path",
+			"auth.activate_page",
+			"auth.activate_email_subject",
+			"auth.activate_email_message",
+			"auth.email_from",
+		})
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+
+		sid, _ := ID_TO_STRING(u.Id)
+		activeURL := fmt.Sprintf(mailSettings["auth.activate_page"], sid, u.ConfirmCodes["activate"])
+		err = DEFAULT_NOTIFICATOR.SendMail(mailSettings["auth.activate_email_subject"],
+			fmt.Sprintf(mailSettings["auth.activate_email_message"], activeURL),
+			mailSettings["auth.email_from"], *u.Email)
+		if err != nil {
+			authCtx.Logs.Errorf("Send mail failed:%s", err)
+		}
+	}
+
 	return http.StatusOK, nil
 }
 
@@ -61,9 +116,16 @@ func Activate(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 		return http.StatusPreconditionFailed, ErrInvalidActiveCode
 	}
 
+	t := true
+	u.Approved = &t
 	err = authCtx.Users.UpdateDetail(u)
 	if err != nil {
 		return http.StatusInternalServerError, err
+	}
+
+	stt, err := sendWelcomeMail(authCtx, *u.Email)
+	if err != nil {
+		return stt, err
 	}
 
 	rw.Write([]byte(`{"Message":"Account activated"}`))

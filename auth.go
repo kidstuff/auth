@@ -1,9 +1,10 @@
 package auth
 
 import (
+	"code.google.com/p/go.net/context"
 	"github.com/gorilla/mux"
 	"github.com/kidstuff/auth/model"
-	"log"
+	"github.com/kidstuff/conf"
 	"net/http"
 	"strings"
 	"time"
@@ -21,45 +22,78 @@ const (
 )
 
 func Serve(router *mux.Router) {
-	if HandlerRegister == nil || EqualIdChecker == nil {
-		panic("kidstuff/auth: need to be initialed by a mngr")
+	if HANDLER_REGISTER == nil {
+		panic("kidstuff/auth: HANDLER_REGISTER need to be overide by a mngr")
 	}
 
-	router.Handle("/tokens", HandlerRegister(GetToken, false, nil, nil))
-	router.Handle("/users/{user_id}/activate", HandlerRegister(Activate, false, nil, nil))
-	router.Handle("/users/{user_id}/password", HandlerRegister(UpdatePassword, true, nil, nil)).Methods("PUT")
-	router.Handle("/users/{user_id}", HandlerRegister(GetProfile, false, nil, nil)).Methods("GET")
-	router.Handle("/users/{user_id}", HandlerRegister(UpdateProfile, true, nil, nil)).Methods("PATCH")
-	router.Handle("/users", HandlerRegister(ListProfile, false, nil, nil))
+	if DEFAULT_NOTIFICATOR == nil {
+		panic("kidstuff/auth: DEFAULT_NOTIFICATOR need to be overide by a mngr")
+	}
+
+	if ID_FROM_STRING == nil {
+		panic("kidstuff/auth: ID_FROM_STRING need to be overide by a mngr")
+	}
+
+	if ID_TO_STRING == nil {
+		panic("kidstuff/auth: ID_TO_STRING need to be overide by a mngr")
+	}
+
+	router.Handle("/signup", HANDLER_REGISTER(SignUp, false, nil, nil))
+	router.Handle("/tokens",
+		HANDLER_REGISTER(GetToken, false, nil, nil))
+
+	router.Handle("/users/{user_id}/activate",
+		HANDLER_REGISTER(Activate, false, nil, nil))
+
+	router.Handle("/users/{user_id}/password",
+		HANDLER_REGISTER(UpdatePassword, true, []string{"admin"}, []string{"manage_user"})).Methods("PUT")
+
+	router.Handle("/users/{user_id}",
+		HANDLER_REGISTER(GetProfile, false, nil, nil)).Methods("GET")
+
+	router.Handle("/users/{user_id}",
+		HANDLER_REGISTER(UpdateProfile, true, []string{"admin"}, []string{"manage_user"})).Methods("PATCH")
+
+	router.Handle("/users",
+		HANDLER_REGISTER(ListProfile, false, nil, nil))
 
 }
 
 type AuthContext struct {
-	Users    model.UserManager
-	Groups   model.GroupManager
-	Settings model.Configurator
+	context.Context
+	Users         model.UserManager
+	Groups        model.GroupManager
+	Settings      conf.Configurator
+	Notifications Notificator
+	Logs          Logger
 }
 
 type HandleFunc func(*AuthContext, http.ResponseWriter, *http.Request) (int, error)
 
 var (
-	HandlerRegister func(fn HandleFunc, owner bool, groups, pri []string) http.Handler
-	EqualIdChecker  func(interface{}, string) bool
+	HANDLER_REGISTER func(fn HandleFunc, owner bool, groups, pri []string) http.Handler
+	ID_FROM_STRING   func(string) (interface{}, error)
+	ID_TO_STRING     func(interface{}) (string, error)
 )
 
-type BasicMngrHandler struct {
-	AuthContext
-	Fn             HandleFunc
+type Condition struct {
 	RequiredGroups []string
 	RequiredPri    []string
 	Owner          bool
 }
 
-func (h *BasicMngrHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+func BasicMngrHandler(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request, cond *Condition, fn HandleFunc) {
+	var cancel context.CancelFunc
+	authCtx.Context, cancel = context.WithTimeout(context.Background(), time.Minute*2)
+	defer cancel()
+
+	authCtx.Notifications = DEFAULT_NOTIFICATOR
+	authCtx.Logs, _ = NewSysLogger("kidstuff/auth")
+
 	rw.Header().Set("Content-Type", "application/json; charset=utf-8")
-	if h.RequiredGroups != nil || h.RequiredPri != nil || h.Owner {
+	if cond.RequiredGroups != nil || cond.RequiredPri != nil || cond.Owner {
 		token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
-		user, err := h.Users.Get(token)
+		user, err := authCtx.Users.Get(token)
 		if err != nil {
 			if err == model.ErrNotLogged {
 				JSONError(rw, err.Error(), http.StatusForbidden)
@@ -71,18 +105,19 @@ func (h *BasicMngrHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 		}
 
 		// check for the current user
-		if h.Owner {
-			if EqualIdChecker(user.Id, mux.Vars(req)["user_id"]) {
+		if cond.Owner {
+			if sid, _ := ID_TO_STRING(user.Id); sid == mux.Vars(req)["user_id"] {
 				goto NORMAL
 			}
+
 			JSONError(rw, ErrForbidden.Error(), http.StatusForbidden)
 			return
 		}
 
 		// check if any groups of the current user match one of the required groups
-		if len(h.RequiredGroups) > 0 {
+		if len(cond.RequiredGroups) > 0 {
 			for _, bg := range user.BriefGroups {
-				for _, g2 := range h.RequiredGroups {
+				for _, g2 := range cond.RequiredGroups {
 					if *bg.Name == g2 {
 						goto NORMAL
 					}
@@ -91,9 +126,9 @@ func (h *BasicMngrHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 		}
 
 		// check if any privileges of the current user match one of the required privileges
-		if len(h.RequiredPri) > 0 {
+		if len(cond.RequiredPri) > 0 {
 			for _, pri := range user.Privilege {
-				for _, p := range h.RequiredPri {
+				for _, p := range cond.RequiredPri {
 					if pri == p {
 						goto NORMAL
 					}
@@ -107,7 +142,7 @@ func (h *BasicMngrHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 			aid = append(aid, v.Id)
 		}
 
-		groups, err := h.AuthContext.Groups.FindSome(aid...)
+		groups, err := authCtx.Groups.FindSome(aid...)
 		if err != nil {
 			JSONError(rw, err.Error(), http.StatusInternalServerError)
 			return
@@ -115,7 +150,7 @@ func (h *BasicMngrHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 
 		for _, v := range groups {
 			for _, pri := range v.Privilege {
-				for _, p := range h.RequiredPri {
+				for _, p := range cond.RequiredPri {
 					if pri == p {
 						goto NORMAL
 					}
@@ -128,12 +163,10 @@ func (h *BasicMngrHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) 
 	}
 
 NORMAL:
-	status, err := h.Fn(&h.AuthContext, rw, req)
+	status, err := fn(authCtx, rw, req)
 	if err != nil {
-		log.Printf("HTTP %d: %q", status, err)
+		authCtx.Logs.Errorf("HTTP %d: %q", status, err)
 		JSONError(rw, err.Error(), status)
-	} else {
-		rw.WriteHeader(status)
 	}
 }
 
