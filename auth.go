@@ -11,53 +11,20 @@ import (
 )
 
 var (
-	OnlineThreshold = time.Hour
+	OnlineThreshold  = time.Hour
+	HANDLER_REGISTER func(fn HandleFunc, owner bool, groups, pri []string) http.Handler
+	ID_FROM_STRING   func(string) (interface{}, error)
+	ID_TO_STRING     func(interface{}) (string, error)
 )
 
 type ctxKey int
 
 const (
 	userTokenKey ctxKey = iota
-	userCurrentKey
+	userIdKey
 )
 
-func Serve(router *mux.Router) {
-	if HANDLER_REGISTER == nil {
-		panic("kidstuff/auth: HANDLER_REGISTER need to be overide by a mngr")
-	}
-
-	if DEFAULT_NOTIFICATOR == nil {
-		panic("kidstuff/auth: DEFAULT_NOTIFICATOR need to be overide by a mngr")
-	}
-
-	if ID_FROM_STRING == nil {
-		panic("kidstuff/auth: ID_FROM_STRING need to be overide by a mngr")
-	}
-
-	if ID_TO_STRING == nil {
-		panic("kidstuff/auth: ID_TO_STRING need to be overide by a mngr")
-	}
-
-	router.Handle("/signup", HANDLER_REGISTER(SignUp, false, nil, nil))
-	router.Handle("/tokens",
-		HANDLER_REGISTER(GetToken, false, nil, nil))
-
-	router.Handle("/users/{user_id}/activate",
-		HANDLER_REGISTER(Activate, false, nil, nil))
-
-	router.Handle("/users/{user_id}/password",
-		HANDLER_REGISTER(UpdatePassword, true, []string{"admin"}, []string{"manage_user"})).Methods("PUT")
-
-	router.Handle("/users/{user_id}",
-		HANDLER_REGISTER(GetProfile, false, nil, nil)).Methods("GET")
-
-	router.Handle("/users/{user_id}",
-		HANDLER_REGISTER(UpdateProfile, true, []string{"admin"}, []string{"manage_user"})).Methods("PATCH")
-
-	router.Handle("/users",
-		HANDLER_REGISTER(ListProfile, false, nil, nil))
-
-}
+type HandleFunc func(*AuthContext, http.ResponseWriter, *http.Request) (int, error)
 
 type AuthContext struct {
 	context.Context
@@ -66,15 +33,111 @@ type AuthContext struct {
 	Settings      conf.Configurator
 	Notifications Notificator
 	Logs          Logger
+	currentUser   *model.User
 }
 
-type HandleFunc func(*AuthContext, http.ResponseWriter, *http.Request) (int, error)
+func (ctx *AuthContext) ctxWithToken(token string) context.Context {
+	return context.WithValue(ctx.Context, userTokenKey, token)
+}
 
-var (
-	HANDLER_REGISTER func(fn HandleFunc, owner bool, groups, pri []string) http.Handler
-	ID_FROM_STRING   func(string) (interface{}, error)
-	ID_TO_STRING     func(interface{}) (string, error)
-)
+func (ctx *AuthContext) ctxWithId(id string) context.Context {
+	return context.WithValue(ctx.Context, userIdKey, id)
+}
+
+func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*model.User, error) {
+	if ctx.currentUser == nil {
+		//try to query current user
+		token, ok := ctx.Value(userTokenKey).(string)
+		if !ok || len(token) == 0 {
+			return nil, ErrForbidden
+		}
+		var err error
+		ctx.currentUser, err = ctx.Users.Get(token)
+		if err != nil {
+			return nil, err
+		}
+		// calculate user privilege base on user's privilege and group's privilege
+		mPri := make(map[string]bool)
+		for _, p := range ctx.currentUser.Privilege {
+			mPri[p] = true
+		}
+
+		aid := make([]interface{}, 0, len(ctx.currentUser.BriefGroups))
+		for _, v := range ctx.currentUser.BriefGroups {
+			aid = append(aid, v.Id)
+		}
+
+		groups, err := ctx.Groups.FindSome(aid...)
+		if err == nil {
+			for _, v := range groups {
+				for _, p := range v.Privilege {
+					mPri[p] = true
+				}
+			}
+		} else {
+			ctx.Logs.Errorf("cannot load user groups to get group privilege")
+		}
+
+		aPri := make([]string, 0, len(mPri))
+		for p := range mPri {
+			aPri = append(aPri, p)
+		}
+
+		ctx.currentUser.Privilege = aPri
+	}
+
+	err := validCurrentUser(ctx, ctx.currentUser, owner, groups, pri)
+	return ctx.currentUser, err
+}
+
+func validCurrentUser(authCtx *AuthContext, user *model.User, owner bool, groups, privilege []string) error {
+	// check for the current user
+	if owner {
+		sid, ok := authCtx.Context.Value(userIdKey).(string)
+		uid, _ := ID_TO_STRING(user.Id)
+		if !ok || len(sid) == 0 || sid != uid {
+			return ErrForbidden
+		}
+	}
+
+	// check if any groups of the current user match one of the required groups
+	if len(groups) > 0 {
+		foundGroup := false
+	LOOP_GROUP:
+		for _, bg := range user.BriefGroups {
+			for _, g2 := range groups {
+				if *bg.Name == g2 {
+					foundGroup = true
+					break LOOP_GROUP
+				}
+			}
+		}
+
+		if !foundGroup {
+			return ErrForbidden
+		}
+	}
+
+	// check if any privileges of the current user match one of the required privileges
+	if len(privilege) > 0 {
+		foundPri := false
+	LOOP_PRI:
+		for _, pri := range user.Privilege {
+			for _, p := range privilege {
+				if pri == p {
+					foundPri = true
+					break LOOP_PRI
+				}
+			}
+		}
+
+		if !foundPri {
+			return ErrForbidden
+		}
+	}
+
+	return nil
+}
 
 type Condition struct {
 	RequiredGroups []string
@@ -87,82 +150,22 @@ func BasicMngrHandler(authCtx *AuthContext, rw http.ResponseWriter, req *http.Re
 	authCtx.Context, cancel = context.WithTimeout(context.Background(), time.Minute*2)
 	defer cancel()
 
+	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
+	authCtx.ctxWithToken(token)
+	authCtx.ctxWithId(mux.Vars(req)["user_id"])
+
 	authCtx.Notifications = DEFAULT_NOTIFICATOR
 	authCtx.Logs, _ = NewSysLogger("kidstuff/auth")
 
 	rw.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if cond.RequiredGroups != nil || cond.RequiredPri != nil || cond.Owner {
-		token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
-		user, err := authCtx.Users.Get(token)
+		_, err := authCtx.ValidCurrentUser(cond.Owner, cond.RequiredGroups, cond.RequiredPri)
 		if err != nil {
-			if err == model.ErrNotLogged {
-				JSONError(rw, err.Error(), http.StatusForbidden)
-				return
-			}
-
-			JSONError(rw, err.Error(), http.StatusInternalServerError)
+			JSONError(rw, err.Error(), http.StatusForbidden)
 			return
 		}
-
-		// check for the current user
-		if cond.Owner {
-			if sid, _ := ID_TO_STRING(user.Id); sid == mux.Vars(req)["user_id"] {
-				goto NORMAL
-			}
-
-			JSONError(rw, ErrForbidden.Error(), http.StatusForbidden)
-			return
-		}
-
-		// check if any groups of the current user match one of the required groups
-		if len(cond.RequiredGroups) > 0 {
-			for _, bg := range user.BriefGroups {
-				for _, g2 := range cond.RequiredGroups {
-					if *bg.Name == g2 {
-						goto NORMAL
-					}
-				}
-			}
-		}
-
-		// check if any privileges of the current user match one of the required privileges
-		if len(cond.RequiredPri) > 0 {
-			for _, pri := range user.Privilege {
-				for _, p := range cond.RequiredPri {
-					if pri == p {
-						goto NORMAL
-					}
-				}
-			}
-		}
-
-		// check if any groups of the current user has the privileges match one of required privileges
-		aid := make([]interface{}, 0, len(user.BriefGroups))
-		for _, v := range user.BriefGroups {
-			aid = append(aid, v.Id)
-		}
-
-		groups, err := authCtx.Groups.FindSome(aid...)
-		if err != nil {
-			JSONError(rw, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		for _, v := range groups {
-			for _, pri := range v.Privilege {
-				for _, p := range cond.RequiredPri {
-					if pri == p {
-						goto NORMAL
-					}
-				}
-			}
-		}
-
-		JSONError(rw, err.Error(), http.StatusForbidden)
-		return
 	}
 
-NORMAL:
 	status, err := fn(authCtx, rw, req)
 	if err != nil {
 		authCtx.Logs.Errorf("HTTP %d: %q", status, err)

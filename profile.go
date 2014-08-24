@@ -39,9 +39,19 @@ func UpdateProfile(authCtx *AuthContext, rw http.ResponseWriter, req *http.Reque
 	}
 	req.Body.Close()
 
+	// don't allow edit ConfirmCodes in this handler
+	u.ConfirmCodes = nil
 	// check for special privilege
-	if u.Privilege != nil || u.ConfirmCodes != nil || u.BriefGroups != nil || u.Approved != nil {
+	if u.Privilege != nil || u.BriefGroups != nil || u.Approved != nil {
+		_, err := authCtx.ValidCurrentUser(false, nil, []string{"manage_user"})
+		if err != nil {
+			return http.StatusForbidden, err
+		}
+	}
 
+	err = authCtx.Users.UpdateDetail(u)
+	if err != nil {
+		return http.StatusInternalServerError, err
 	}
 
 	return http.StatusOK, nil
