@@ -10,23 +10,23 @@ import (
 
 func sendWelcomeMail(authCtx *AuthContext, email string) (int, error) {
 	if val, err := authCtx.Settings.
-		Get("auth.send_welcome_email"); err != nil || val != "true" {
+		Get("auth_send_welcome_email"); err != nil || val != "true" {
 		return http.StatusOK, nil
 	}
 
 	mailSettings, err := authCtx.Settings.GetMulti([]string{
-		"auth.full_path",
-		"auth.welcome_email_subject",
-		"auth.welcome_email_message",
-		"auth.email_from",
+		"auth_full_path",
+		"auth_welcome_email_subject",
+		"auth_welcome_email_message",
+		"auth_email_from",
 	})
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	err = DEFAULT_NOTIFICATOR.SendMail(mailSettings["auth.welcome_email_subject"],
-		mailSettings["auth.welcome_email_message"],
-		mailSettings["auth.email_from"], email)
+	err = DEFAULT_NOTIFICATOR.SendMail(mailSettings["auth_welcome_email_subject"],
+		mailSettings["auth_welcome_email_message"],
+		mailSettings["auth_email_from"], email)
 	if err != nil {
 		authCtx.Logs.Errorf("mail send error:%s", err)
 	}
@@ -52,7 +52,7 @@ func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (in
 
 	app := true
 	if val, err := authCtx.Settings.
-		Get("auth.approve_new_user"); err != nil || val != "true" {
+		Get("auth_approve_new_user"); err != nil || val != "true" {
 		app = false
 	}
 
@@ -70,26 +70,26 @@ func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (in
 		return sendWelcomeMail(authCtx, *u.Email)
 	} else {
 		if val, err := authCtx.Settings.
-			Get("auth.send_activate_email"); err != nil || val != "true" {
+			Get("auth_send_activate_email"); err != nil || val != "true" {
 			return http.StatusOK, nil
 		}
 
 		mailSettings, err := authCtx.Settings.GetMulti([]string{
-			"auth.full_path",
-			"auth.activate_page",
-			"auth.activate_email_subject",
-			"auth.activate_email_message",
-			"auth.email_from",
+			"auth_full_path",
+			"auth_activate_page",
+			"auth_activate_email_subject",
+			"auth_activate_email_message",
+			"auth_email_from",
 		})
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
 
 		sid, _ := ID_TO_STRING(u.Id)
-		activeURL := fmt.Sprintf(mailSettings["auth.activate_page"], sid, u.ConfirmCodes["activate"])
-		err = DEFAULT_NOTIFICATOR.SendMail(mailSettings["auth.activate_email_subject"],
-			fmt.Sprintf(mailSettings["auth.activate_email_message"], activeURL),
-			mailSettings["auth.email_from"], *u.Email)
+		activeURL := fmt.Sprintf(mailSettings["auth_activate_page"], sid, u.ConfirmCodes["activate"])
+		err = DEFAULT_NOTIFICATOR.SendMail(mailSettings["auth_activate_email_subject"],
+			fmt.Sprintf(mailSettings["auth_activate_email_message"], activeURL),
+			mailSettings["auth_email_from"], *u.Email)
 		if err != nil {
 			authCtx.Logs.Errorf("Send mail failed:%s", err)
 		}
