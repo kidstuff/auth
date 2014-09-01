@@ -62,8 +62,8 @@ func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*mod
 			mPri[p] = true
 		}
 
-		aid := make([]interface{}, 0, len(ctx.currentUser.BriefGroups))
-		for _, v := range ctx.currentUser.BriefGroups {
+		aid := make([]interface{}, 0, len(ctx.currentUser.Groups))
+		for _, v := range ctx.currentUser.Groups {
 			aid = append(aid, v.Id)
 		}
 
@@ -104,7 +104,7 @@ func validCurrentUser(authCtx *AuthContext, user *model.User, owner bool, groups
 	if len(groups) > 0 {
 		foundGroup := false
 	LOOP_GROUP:
-		for _, bg := range user.BriefGroups {
+		for _, bg := range user.Groups {
 			for _, g2 := range groups {
 				if *bg.Name == g2 {
 					foundGroup = true

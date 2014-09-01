@@ -26,11 +26,11 @@ type User struct {
 	OldPwd       []Password        `bson:"OldPwd" json:"-"`
 	Pwd          *Password         `bson:"Pwd" json:"-"`
 	LastActivity *time.Time        `bson:"LastActivity"  json:",omitempty"`
-	Info         *UserInfo         `bson:"Info" json:",omitempty"`
 	Privilege    []string          `bson:"Privilege" json:",omitempty"`
 	Approved     *bool             `bson:"Approved" json:",omitempty"`
 	ConfirmCodes map[string]string `bson:"ConfirmCodes" json:"-"`
-	BriefGroups  []BriefGroup      `bson:"BriefGroups" json:",omitempty"`
+	Info         *UserInfo         `bson:"Info,omitempty" json:",omitempty"`
+	Groups       []Group           `bson:"Groups,omitempty" json:",omitempty"`
 }
 
 func (u *User) ChangePassword(pwd string) error {

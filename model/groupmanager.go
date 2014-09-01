@@ -12,15 +12,11 @@ var (
 	ErrDuplicateName = errors.New("auth: duplicate Group Name")
 )
 
-type BriefGroup struct {
-	Id   interface{} `bson:"_id"`
-	Name *string     `bson:"Name" json:",omitempty"`
-}
-
 type Group struct {
-	BriefGroup `bson:"BriefGroup,inline"`
-	Info       *GroupInfo `bson:"Info" json:",omitempty"`
-	Privilege  []string   `bson:"Privilege" json:",omitempty"`
+	Id        interface{} `bson:"_id"`
+	Name      *string     `bson:"Name,omitempty" json:",omitempty"`
+	Info      *GroupInfo  `bson:"Info,omitempty" json:",omitempty"`
+	Privilege []string    `bson:"Privilege,omitempty" json:",omitempty"`
 }
 
 type GroupInfo struct {
