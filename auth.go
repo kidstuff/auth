@@ -36,12 +36,12 @@ type AuthContext struct {
 	currentUser   *model.User
 }
 
-func (ctx *AuthContext) ctxWithToken(token string) context.Context {
-	return context.WithValue(ctx.Context, userTokenKey, token)
+func (ctx *AuthContext) saveToken(token string) {
+	ctx.Context = context.WithValue(ctx.Context, userTokenKey, token)
 }
 
-func (ctx *AuthContext) ctxWithId(id string) context.Context {
-	return context.WithValue(ctx.Context, userIdKey, id)
+func (ctx *AuthContext) saveId(id string) {
+	ctx.Context = context.WithValue(ctx.Context, userIdKey, id)
 }
 
 func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*model.User, error) {
@@ -151,8 +151,8 @@ func BasicMngrHandler(authCtx *AuthContext, rw http.ResponseWriter, req *http.Re
 	defer cancel()
 
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
-	authCtx.ctxWithToken(token)
-	authCtx.ctxWithId(mux.Vars(req)["user_id"])
+	authCtx.saveToken(token)
+	authCtx.saveId(mux.Vars(req)["user_id"])
 
 	authCtx.Notifications = DEFAULT_NOTIFICATOR
 	authCtx.Logs, _ = NewSysLogger("kidstuff/auth")
