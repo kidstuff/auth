@@ -66,7 +66,10 @@ func ListProfile(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request
 	}
 
 	offsetId := req.FormValue("offset")
-	selectFields := strings.Split(req.FormValue("select"), ",")
+	var selectFields []string
+	if slt := req.FormValue("select"); len(slt) > 0 {
+		selectFields = strings.Split(slt, ",")
+	}
 
 	users, err := authCtx.Users.FindAll(limit, offsetId, selectFields)
 	if err != nil {
