@@ -32,12 +32,12 @@ func Serve(router *mux.Router) {
 		HANDLER_REGISTER(UpdatePassword, true, []string{"admin"}, []string{"manage_user"})).Methods("PUT")
 
 	router.Handle("/users/{user_id}",
-		HANDLER_REGISTER(GetProfile, true, []string{"admin"}, []string{"manage_user"})).Methods("GET")
+		HANDLER_REGISTER(GetUser, true, []string{"admin"}, []string{"manage_user"})).Methods("GET")
 
-	router.Handle("/users/{user_id}",
-		HANDLER_REGISTER(UpdateProfile, true, []string{"admin"}, []string{"manage_user"})).Methods("PATCH")
+	router.Handle("/users/{user_id}/profiles",
+		HANDLER_REGISTER(UpdateUserProfile, true, []string{"admin"}, []string{"manage_user"})).Methods("PATCH")
 
 	router.Handle("/users",
-		HANDLER_REGISTER(ListProfile, false, []string{"admin"}, []string{"manage_user"}))
+		HANDLER_REGISTER(ListUser, false, []string{"admin"}, []string{"manage_user"}))
 
 }

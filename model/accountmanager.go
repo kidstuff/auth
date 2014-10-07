@@ -29,7 +29,7 @@ type User struct {
 	Privilege    []string          `bson:"Privilege" json:",omitempty"`
 	Approved     *bool             `bson:"Approved" json:",omitempty"`
 	ConfirmCodes map[string]string `bson:"ConfirmCodes" json:"-"`
-	Info         *UserInfo         `bson:"Info,omitempty" json:",omitempty"`
+	Profile      *Profile          `bson:"Profile,omitempty" json:",omitempty"`
 	Groups       []Group           `bson:"Groups,omitempty" json:",omitempty"`
 }
 
@@ -84,7 +84,7 @@ type Password struct {
 	InitAt time.Time `bson:"InitAt"`
 }
 
-type UserInfo struct {
+type Profile struct {
 	FirstName  *string    `bson:"FirstName" json:",omitempty"`
 	LastName   *string    `bson:"LastName" json:",omitempty"`
 	MiddleName *string    `bson:"MiddleName" json:",omitempty"`
