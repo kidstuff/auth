@@ -13,8 +13,6 @@ import (
 var (
 	OnlineThreshold  = time.Hour
 	HANDLER_REGISTER func(fn HandleFunc, owner bool, groups, pri []string) http.Handler
-	ID_FROM_STRING   func(string) (interface{}, error)
-	ID_TO_STRING     func(interface{}) (string, error)
 )
 
 type ctxKey int
@@ -62,9 +60,9 @@ func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*mod
 			mPri[p] = true
 		}
 
-		aid := make([]interface{}, 0, len(ctx.currentUser.Groups))
+		aid := make([]string, 0, len(ctx.currentUser.Groups))
 		for _, v := range ctx.currentUser.Groups {
-			aid = append(aid, v.Id)
+			aid = append(aid, *v.Id)
 		}
 
 		groups, err := ctx.Groups.FindSome(aid...)
@@ -94,8 +92,7 @@ func validCurrentUser(authCtx *AuthContext, user *model.User, owner bool, groups
 	// check for the current user
 	if owner {
 		sid, ok := authCtx.Context.Value(userIdKey).(string)
-		uid, _ := ID_TO_STRING(user.Id)
-		if !ok || len(sid) == 0 || sid != uid {
+		if !ok || len(sid) == 0 || sid != *user.Id {
 			return ErrForbidden
 		}
 	}

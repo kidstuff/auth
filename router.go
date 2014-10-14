@@ -13,14 +13,6 @@ func Serve(router *mux.Router) {
 		panic("kidstuff/auth: DEFAULT_NOTIFICATOR need to be overide by a mngr")
 	}
 
-	if ID_FROM_STRING == nil {
-		panic("kidstuff/auth: ID_FROM_STRING need to be overide by a mngr")
-	}
-
-	if ID_TO_STRING == nil {
-		panic("kidstuff/auth: ID_TO_STRING need to be overide by a mngr")
-	}
-
 	router.Handle("/signup", HANDLER_REGISTER(SignUp, false, nil, nil))
 	router.Handle("/tokens",
 		HANDLER_REGISTER(GetToken, false, nil, nil))

@@ -13,10 +13,10 @@ var (
 )
 
 type Group struct {
-	Id        interface{} `bson:"_id"`
-	Name      *string     `bson:"Name,omitempty" json:",omitempty"`
-	Info      *GroupInfo  `bson:"Info,omitempty" json:",omitempty"`
-	Privilege []string    `bson:"Privilege,omitempty" json:",omitempty"`
+	Id        *string    `bson:"-"`
+	Name      *string    `bson:"Name,omitempty" json:",omitempty"`
+	Info      *GroupInfo `bson:"Info,omitempty" json:",omitempty"`
+	Privilege []string   `bson:"Privilege,omitempty" json:",omitempty"`
 }
 
 type GroupInfo struct {
@@ -29,18 +29,18 @@ type GroupManager interface {
 	// UpdateDetail updates group detail specific by id.
 	UpdateDetail(*Group) error
 	// Find find the group specific by id.
-	Find(id interface{}) (*Group, error)
+	Find(id string) (*Group, error)
 	// FindByName find the group specific by name.
 	FindByName(name string) (*Group, error)
 	// FindSome find and return a slice of group specific by thier id.
-	FindSome(id ...interface{}) ([]*Group, error)
+	FindSome(id ...string) ([]*Group, error)
 	// FindAll finds and return a slice of group.
 	// If limit < 0 the mean using the default upper limit.
 	// If limit == 0 return empty result with error indicate no result found.
 	// If limit can't be greater than the default upper limit.
 	// Specific fields name for porjection select.
-	FindAll(limit int, offsetId interface{}, fields []string) ([]*Group, error)
+	FindAll(limit int, offsetId string, fields []string) ([]*Group, error)
 	// Delete deletes a group from database base on the given id;
 	// It returns an error describes the first issue encountered, if any.
-	Delete(id interface{}) error
+	Delete(id string) error
 }

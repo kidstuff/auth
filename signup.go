@@ -85,8 +85,7 @@ func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (in
 			return http.StatusInternalServerError, err
 		}
 
-		sid, _ := ID_TO_STRING(u.Id)
-		activeURL := fmt.Sprintf(mailSettings["auth_activate_page"], sid, u.ConfirmCodes["activate"])
+		activeURL := fmt.Sprintf(mailSettings["auth_activate_page"], *u.Id, u.ConfirmCodes["activate"])
 		err = DEFAULT_NOTIFICATOR.SendMail(mailSettings["auth_activate_email_subject"],
 			fmt.Sprintf(mailSettings["auth_activate_email_message"], activeURL),
 			mailSettings["auth_email_from"], *u.Email)
@@ -117,8 +116,7 @@ func Activate(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 	}
 
 	t := true
-	u.Approved = &t
-	err = authCtx.Users.UpdateDetail(u)
+	err = authCtx.Users.UpdateDetail(*u.Id, nil, &t, nil, nil, nil, nil)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

@@ -5,7 +5,7 @@
 package model
 
 import (
-	"code.google.com/p/go.crypto/bcrypt"
+	// "code.google.com/p/go.crypto/bcrypt"
 	"encoding/base64"
 	"errors"
 	"github.com/gorilla/securecookie"
@@ -21,9 +21,8 @@ var (
 )
 
 type User struct {
-	Id           interface{}       `bson:"_id"`
+	Id           *string           `bson:"-"`
 	Email        *string           `bson:"Email" json:",omitempty"`
-	OldPwd       []Password        `bson:"OldPwd" json:"-"`
 	Pwd          *Password         `bson:"Pwd" json:"-"`
 	LastActivity *time.Time        `bson:"LastActivity"  json:",omitempty"`
 	Privilege    []string          `bson:"Privilege" json:",omitempty"`
@@ -31,32 +30,6 @@ type User struct {
 	ConfirmCodes map[string]string `bson:"ConfirmCodes" json:"-"`
 	Profile      *Profile          `bson:"Profile,omitempty" json:",omitempty"`
 	Groups       []Group           `bson:"Groups,omitempty" json:",omitempty"`
-}
-
-func (u *User) ChangePassword(pwd string) error {
-	if u.Pwd != nil {
-		u.OldPwd = append(u.OldPwd, *u.Pwd)
-	}
-
-	hpwd, err := HashPwd(pwd)
-	if err != nil {
-		return err
-	}
-
-	u.Pwd = &hpwd
-	return nil
-}
-
-func (u *User) ComparePassword(pwd string) error {
-	pwdBytes := []byte(pwd)
-	tmp := make([]byte, len(pwdBytes)+len(u.Pwd.Salt))
-	copy(tmp, pwdBytes)
-	tmp = append(tmp, u.Pwd.Salt...)
-	if err := bcrypt.CompareHashAndPassword(u.Pwd.Hashed, tmp); err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // ValidConfirmCode valid the code for specific key of the user specify by id.
@@ -114,16 +87,18 @@ type UserManager interface {
 	// Implement of this method should valid email, pwd and make sure the user
 	// email are unique.
 	// It returns an error describes the first issue encountered, if any.
-	AddDetail(*User) (*User, error)
+	AddDetail(email, pwd string, app bool, pri []string,
+		code map[string]string, profile *Profile, groups []Group) (*User, error)
 	// UpdateDetail changes detail of the User.
 	// It returns an error describes the first issue encountered, if any.
-	UpdateDetail(*User) error
+	UpdateDetail(id string, pwd *string, app *bool, pri []string,
+		code map[string]string, profile *Profile, groups []Group) error
 	// Delete deletes an user from database base on the given id;
 	// It returns an error describes the first issue encountered, if any.
-	Delete(id interface{}) error
+	Delete(id string) error
 	// Find finds the user with the given id;
 	// Its returns an ErrNotFound if the user's id was not found.
-	Find(id interface{}) (*User, error)
+	Find(id string) (*User, error)
 	// FindByEmail like Find but receive an email
 	FindByEmail(email string) (*User, error)
 	// FindAll finds and return a slice of group.
@@ -131,10 +106,10 @@ type UserManager interface {
 	// If limit == 0 return empty result with error indicate no result found.
 	// If limit can't be greater than the default upper limit.
 	// Specific fields name for porjection select.
-	FindAll(limit int, offsetId interface{}, fields []string) ([]*User, error)
+	FindAll(limit int, offsetId string, fields []string) ([]*User, error)
 	// FindAllOnline finds and return a slice of current Loged user.
 	// See FindAll for the usage.
-	FindAllOnline(limit int, offsetId interface{}, fields []string) ([]*User, error)
+	FindAllOnline(limit int, offsetId string, fields []string) ([]*User, error)
 	// Get gets the infomations and update the LastActivity of the current
 	// loged user by the token (given by Login method);
 	// It returns an error describes the first issue encountered, if any.
@@ -143,7 +118,8 @@ type UserManager interface {
 	// Stay is the duration to keep the user Login state.
 	// It returns a token string, use the token to keep track on the user with
 	// Get or Logout.
-	Login(id interface{}, stay time.Duration) (string, error)
+	Login(id string, stay time.Duration) (string, error)
 	// Logout logs the current user out.
 	Logout(token string) error
+	ComparePassword(ps string, pwd *Password) error
 }

@@ -27,12 +27,12 @@ func GetToken(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 		return http.StatusUnauthorized, ErrInvalidCredential
 	}
 
-	err = user.ComparePassword(password)
+	err = authCtx.Users.ComparePassword(password, user.Pwd)
 	if err != nil {
 		return http.StatusUnauthorized, ErrInvalidCredential
 	}
 
-	token, err := authCtx.Users.Login(user.Id, OnlineThreshold)
+	token, err := authCtx.Users.Login(*user.Id, OnlineThreshold)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

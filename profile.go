@@ -46,9 +46,7 @@ func UpdateUserProfile(authCtx *AuthContext, rw http.ResponseWriter, req *http.R
 	}
 	req.Body.Close()
 
-	u.Profile = p
-
-	err = authCtx.Users.UpdateDetail(u)
+	err = authCtx.Users.UpdateDetail(*u.Id, nil, nil, nil, nil, p, nil)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -74,10 +72,9 @@ func ListUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 	}
 
 	next := req.URL.String()
-	sid, err := ID_TO_STRING(users[len(users)-1].Id)
 	if err != nil {
 		q := req.URL.Query()
-		q.Set("offset", sid)
+		q.Set("offset", *users[len(users)-1].Id)
 		req.URL.RawQuery = q.Encode()
 		next = req.URL.String()
 	}
