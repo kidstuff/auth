@@ -13,7 +13,7 @@ var (
 )
 
 type Group struct {
-	Id        *string    `bson:"-"`
+	Id        *string    `bson:"Id,omitempty"`
 	Name      *string    `bson:"Name,omitempty" json:",omitempty"`
 	Info      *GroupInfo `bson:"Info,omitempty" json:",omitempty"`
 	Privilege []string   `bson:"Privilege,omitempty" json:",omitempty"`

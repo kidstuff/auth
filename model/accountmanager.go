@@ -21,7 +21,7 @@ var (
 )
 
 type User struct {
-	Id           *string           `bson:"-"`
+	Id           *string           `bson:"Id,omitempty"`
 	Email        *string           `bson:"Email" json:",omitempty"`
 	Pwd          *Password         `bson:"Pwd" json:"-"`
 	LastActivity *time.Time        `bson:"LastActivity"  json:",omitempty"`
