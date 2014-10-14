@@ -25,9 +25,9 @@ type GroupInfo struct {
 
 type GroupManager interface {
 	// AddDetail adds a group with full detail to database.
-	AddDetail(*Group) (*Group, error)
+	AddDetail(name string, pri []string, info *GroupInfo) (*Group, error)
 	// UpdateDetail updates group detail specific by id.
-	UpdateDetail(*Group) error
+	UpdateDetail(id string, pri []string, info *GroupInfo) error
 	// Find find the group specific by id.
 	Find(id string) (*Group, error)
 	// FindByName find the group specific by name.
