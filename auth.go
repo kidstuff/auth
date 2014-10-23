@@ -7,6 +7,7 @@ import (
 	"github.com/kidstuff/conf"
 	"net/http"
 	"strings"
+	"text/template"
 	"time"
 )
 
@@ -56,7 +57,7 @@ func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*mod
 		}
 		// calculate user privilege base on user's privilege and group's privilege
 		mPri := make(map[string]bool)
-		for _, p := range ctx.currentUser.Privilege {
+		for _, p := range ctx.currentUser.Privileges {
 			mPri[p] = true
 		}
 
@@ -81,7 +82,7 @@ func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*mod
 			aPri = append(aPri, p)
 		}
 
-		ctx.currentUser.Privilege = aPri
+		ctx.currentUser.Privileges = aPri
 	}
 
 	err := validCurrentUser(ctx, ctx.currentUser, owner, groups, pri)
@@ -119,7 +120,7 @@ func validCurrentUser(authCtx *AuthContext, user *model.User, owner bool, groups
 	if len(privilege) > 0 {
 		foundPri := false
 	LOOP_PRI:
-		for _, pri := range user.Privilege {
+		for _, pri := range user.Privileges {
 			for _, p := range privilege {
 				if pri == p {
 					foundPri = true
@@ -172,5 +173,5 @@ func BasicMngrHandler(authCtx *AuthContext, rw http.ResponseWriter, req *http.Re
 
 func JSONError(rw http.ResponseWriter, message string, code int) {
 	rw.WriteHeader(code)
-	rw.Write([]byte(`{"error":"` + message + `"}`))
+	rw.Write([]byte(`{"error":"` + template.JSEscapeString(message) + `"}`))
 }

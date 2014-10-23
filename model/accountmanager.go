@@ -25,7 +25,7 @@ type User struct {
 	Email        *string           `bson:"Email" json:",omitempty"`
 	Pwd          *Password         `bson:"Pwd" json:"-"`
 	LastActivity *time.Time        `bson:"LastActivity"  json:",omitempty"`
-	Privilege    []string          `bson:"Privilege" json:",omitempty"`
+	Privileges   []string          `bson:"Privileges" json:",omitempty"`
 	Approved     *bool             `bson:"Approved" json:",omitempty"`
 	ConfirmCodes map[string]string `bson:"ConfirmCodes" json:"-"`
 	Profile      *Profile          `bson:"Profile,omitempty" json:",omitempty"`
@@ -64,8 +64,8 @@ type Profile struct {
 	NickName   *string    `bson:"NickName" json:",omitempty"`
 	BirthDay   *time.Time `bson:"BirthDay" json:",omitempty"`
 	JoinDay    *time.Time `bson:"JoinDay" json:",omitempty"`
-	Address    []Address  `bson:"Address" json:",omitempty"`
-	Phone      []string   `bson:"Phone" json:",omitempty"`
+	Addresses  []Address  `bson:"Addresses" json:",omitempty"`
+	Phones     []string   `bson:"Phones" json:",omitempty"`
 }
 
 type Address struct {

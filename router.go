@@ -26,7 +26,7 @@ func Serve(router *mux.Router) {
 	router.Handle("/users/{user_id}",
 		HANDLER_REGISTER(GetUser, true, []string{"admin"}, []string{"manage_user"})).Methods("GET")
 
-	router.Handle("/users/{user_id}/profiles",
+	router.Handle("/users/{user_id}/profile",
 		HANDLER_REGISTER(UpdateUserProfile, true, []string{"admin"}, []string{"manage_user"})).Methods("PATCH")
 
 	router.Handle("/users",

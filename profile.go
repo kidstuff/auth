@@ -80,8 +80,8 @@ func ListUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 	}
 
 	response := struct {
-		User []*model.User
-		Next string
+		Users []*model.User
+		Next  string
 	}{users, next}
 
 	err = json.NewEncoder(rw).Encode(response)
