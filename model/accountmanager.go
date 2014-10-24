@@ -80,16 +80,18 @@ type UserManager interface {
 	// Add adds an user to database with email and password;
 	// If app is false, the user is waiting to be approved.
 	// Implement of this method should valid email, pwd and make sure the user
-	// email are unique.
+	// email are unique then initial the LastActivity and JoinDay.
 	// It returns an error describes the first issue encountered, if any.
 	Add(email, pwd string, app bool) (*User, error)
 	// AddDetail add a User with full detail to database.
 	// Implement of this method should valid email, pwd and make sure the user
-	// email are unique.
+	// email are unique then initial the LastActivity and JoinDay.
 	// It returns an error describes the first issue encountered, if any.
 	AddDetail(email, pwd string, app bool, pri []string,
 		code map[string]string, profile *Profile, groups []Group) (*User, error)
 	// UpdateDetail changes detail of the User.
+	// If a agrument is nil, the implement of tis function should not affect the
+	// value of that field.
 	// It returns an error describes the first issue encountered, if any.
 	UpdateDetail(id string, pwd *string, app *bool, pri []string,
 		code map[string]string, profile *Profile, groups []Group) error
@@ -121,5 +123,7 @@ type UserManager interface {
 	Login(id string, stay time.Duration) (string, error)
 	// Logout logs the current user out.
 	Logout(token string) error
+	// ComparePassword cmapres the given passwod string with the hashed password of the
+	// User struct.
 	ComparePassword(ps string, pwd *Password) error
 }

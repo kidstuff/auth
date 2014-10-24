@@ -4,8 +4,11 @@ import (
 	"regexp"
 )
 
+// FormatChecker is a helper interface, a "manager" donnot need to implement it.
 type FormatChecker interface {
+	// PasswordValidate validate password strength.
 	PasswordValidate(string) bool
+	// EmailValidate validate email format.
 	EmailValidate(string) bool
 }
 
@@ -23,10 +26,12 @@ func NewSimpleChecker(pwdlen int) (*SimpleChecker, error) {
 	return &c, err
 }
 
+// PasswordValidate validate pwd base on the length
 func (c *SimpleChecker) PasswordValidate(pwd string) bool {
 	return len(pwd) >= c.pwdlen
 }
 
+// EmailValidate validate email base on a simple regex
 func (c *SimpleChecker) EmailValidate(email string) bool {
 	return c.emailregex.MatchString(email)
 }

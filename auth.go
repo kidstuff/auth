@@ -12,7 +12,9 @@ import (
 )
 
 var (
-	OnlineThreshold  = time.Hour
+	OnlineThreshold = time.Hour
+	// HANDLER_REGISTER should be "overided" by the "manager". Implement of this function
+	// must use the "or" logic for the conditions.
 	HANDLER_REGISTER func(fn HandleFunc, owner bool, groups, pri []string) http.Handler
 )
 
@@ -43,6 +45,7 @@ func (ctx *AuthContext) saveId(id string) {
 	ctx.Context = context.WithValue(ctx.Context, userIdKey, id)
 }
 
+// ValidCurrentUser validate user privilege and cacuate user total privilege base on groups
 func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*model.User, error) {
 	if ctx.currentUser == nil {
 		//try to query current user
@@ -143,6 +146,8 @@ type Condition struct {
 	Owner          bool
 }
 
+// BasicMngrHandler can be use in "manager" ServeHTTP after initital required interface like
+// model.UserManager, model.GroupManager, conf.Configurator...etc
 func BasicMngrHandler(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request, cond *Condition, fn HandleFunc) {
 	var cancel context.CancelFunc
 	authCtx.Context, cancel = context.WithTimeout(context.Background(), time.Minute*2)
@@ -171,6 +176,7 @@ func BasicMngrHandler(authCtx *AuthContext, rw http.ResponseWriter, req *http.Re
 	}
 }
 
+// JSONError is a helper function to write json error message to http.ResponseWriter
 func JSONError(rw http.ResponseWriter, message string, code int) {
 	rw.WriteHeader(code)
 	rw.Write([]byte(`{"error":"` + template.JSEscapeString(message) + `"}`))
