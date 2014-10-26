@@ -29,7 +29,9 @@ func Serve(router *mux.Router) {
 	router.Handle("/users/{user_id}/profile",
 		HANDLER_REGISTER(UpdateUserProfile, true, []string{"admin"}, []string{"manage_user"})).Methods("PATCH")
 
+	router.Handle("/users/{user_id}/approve",
+		HANDLER_REGISTER(UpdateApprovedStatus, false, []string{"admin"}, []string{"manage_user"})).Methods("PUT")
+
 	router.Handle("/users",
 		HANDLER_REGISTER(ListUser, false, []string{"admin"}, []string{"manage_user"}))
-
 }

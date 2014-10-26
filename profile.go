@@ -91,3 +91,29 @@ func ListUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 
 	return http.StatusOK, nil
 }
+
+func UpdateApprovedStatus(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
+	sid := mux.Vars(req)["user_id"]
+	if len(sid) == 0 {
+		return http.StatusBadRequest, ErrInvalidId
+	}
+
+	u, err := authCtx.Users.Find(sid)
+	if err != nil {
+		return http.StatusNotFound, err
+	}
+
+	app := struct{ Approved bool }{}
+	err = json.NewDecoder(req.Body).Decode(&app)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	req.Body.Close()
+
+	err = authCtx.Users.UpdateDetail(*u.Id, nil, &app.Approved, nil, nil, nil, nil)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return http.StatusOK, nil
+}
