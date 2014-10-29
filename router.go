@@ -34,4 +34,7 @@ func Serve(router *mux.Router) {
 
 	router.Handle("/users",
 		HANDLER_REGISTER(ListUser, false, []string{"admin"}, []string{"manage_user"}))
+
+	router.Handle("/groups",
+		HANDLER_REGISTER(ListGroup, false, []string{"admin"}, []string{"manage_user"}))
 }
