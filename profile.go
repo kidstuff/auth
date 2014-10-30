@@ -15,7 +15,7 @@ func GetUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (i
 		return http.StatusBadRequest, ErrInvalidId
 	}
 
-	u, err := authCtx.Users.Find(sid)
+	u, err := authCtx.Auth.FindUser(sid)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -34,7 +34,7 @@ func UpdateUserProfile(authCtx *AuthContext, rw http.ResponseWriter, req *http.R
 		return http.StatusBadRequest, ErrInvalidId
 	}
 
-	u, err := authCtx.Users.Find(sid)
+	u, err := authCtx.Auth.FindUser(sid)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -46,7 +46,7 @@ func UpdateUserProfile(authCtx *AuthContext, rw http.ResponseWriter, req *http.R
 	}
 	req.Body.Close()
 
-	err = authCtx.Users.UpdateDetail(*u.Id, nil, nil, nil, nil, p, nil)
+	err = authCtx.Auth.UpdateUserDetail(*u.Id, nil, nil, nil, nil, p, nil)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -66,7 +66,12 @@ func ListUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 		selectFields = strings.Split(slt, ",")
 	}
 
-	users, err := authCtx.Users.FindAll(limit, offsetId, selectFields)
+	var groupIds []string
+	if groups := req.FormValue("groups"); len(groups) > 0 {
+		groupIds = strings.Split(groups, ",")
+	}
+
+	users, err := authCtx.Auth.FindAllUser(limit, offsetId, selectFields, groupIds)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -98,7 +103,7 @@ func UpdateApprovedStatus(authCtx *AuthContext, rw http.ResponseWriter, req *htt
 		return http.StatusBadRequest, ErrInvalidId
 	}
 
-	u, err := authCtx.Users.Find(sid)
+	u, err := authCtx.Auth.FindUser(sid)
 	if err != nil {
 		return http.StatusNotFound, err
 	}
@@ -110,7 +115,7 @@ func UpdateApprovedStatus(authCtx *AuthContext, rw http.ResponseWriter, req *htt
 	}
 	req.Body.Close()
 
-	err = authCtx.Users.UpdateDetail(*u.Id, nil, &app.Approved, nil, nil, nil, nil)
+	err = authCtx.Auth.UpdateUserDetail(*u.Id, nil, &app.Approved, nil, nil, nil, nil)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

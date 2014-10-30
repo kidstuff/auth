@@ -56,7 +56,7 @@ func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (in
 		app = false
 	}
 
-	u, err := authCtx.Users.Add(credential.Email, credential.PwdRepeat, app)
+	u, err := authCtx.Auth.AddUser(credential.Email, credential.PwdRepeat, app)
 	if err != nil {
 		return http.StatusPreconditionFailed, err
 	}
@@ -106,7 +106,7 @@ func Activate(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 		return http.StatusBadRequest, ErrInvalidId
 	}
 
-	u, err := authCtx.Users.Find(sid)
+	u, err := authCtx.Auth.FindUser(sid)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
@@ -116,7 +116,7 @@ func Activate(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 	}
 
 	t := true
-	err = authCtx.Users.UpdateDetail(*u.Id, nil, &t, nil, nil, nil, nil)
+	err = authCtx.Auth.UpdateUserDetail(*u.Id, nil, &t, nil, nil, nil, nil)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}

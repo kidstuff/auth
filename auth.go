@@ -29,8 +29,7 @@ type HandleFunc func(*AuthContext, http.ResponseWriter, *http.Request) (int, err
 
 type AuthContext struct {
 	context.Context
-	Users         model.UserManager
-	Groups        model.GroupManager
+	Auth          model.Manager
 	Settings      conf.Configurator
 	Notifications Notificator
 	Logs          Logger
@@ -54,7 +53,7 @@ func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*mod
 			return nil, ErrForbidden
 		}
 		var err error
-		ctx.currentUser, err = ctx.Users.Get(token)
+		ctx.currentUser, err = ctx.Auth.GetUser(token)
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +68,7 @@ func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*mod
 			aid = append(aid, *v.Id)
 		}
 
-		groups, err := ctx.Groups.FindSome(aid...)
+		groups, err := ctx.Auth.FindSomeGroup(aid...)
 		if err == nil {
 			for _, v := range groups {
 				for _, p := range v.Privilege {

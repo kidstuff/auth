@@ -22,17 +22,17 @@ func GetToken(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 		return http.StatusBadRequest, errors.New("kidstuff/auth: Only support grant_type=password")
 	}
 
-	user, err := authCtx.Users.FindByEmail(email)
+	user, err := authCtx.Auth.FindUserByEmail(email)
 	if err != nil {
 		return http.StatusUnauthorized, ErrInvalidCredential
 	}
 
-	err = authCtx.Users.ComparePassword(password, user.Pwd)
+	err = authCtx.Auth.ComparePassword(password, user.Pwd)
 	if err != nil {
 		return http.StatusUnauthorized, ErrInvalidCredential
 	}
 
-	token, err := authCtx.Users.Login(*user.Id, OnlineThreshold)
+	token, err := authCtx.Auth.Login(*user.Id, OnlineThreshold)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
