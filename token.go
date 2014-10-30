@@ -3,7 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"errors"
-	"github.com/kidstuff/auth/model"
+	"github.com/kidstuff/auth/authmodel"
 	"net/http"
 	"time"
 )
@@ -38,7 +38,7 @@ func GetToken(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 	}
 
 	inf := struct {
-		User        *model.User
+		User        *authmodel.User
 		ExpiredOn   time.Time
 		AccessToken string
 	}{user, time.Now().Add(OnlineThreshold), token}

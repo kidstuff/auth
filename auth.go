@@ -3,7 +3,7 @@ package auth
 import (
 	"code.google.com/p/go.net/context"
 	"github.com/gorilla/mux"
-	"github.com/kidstuff/auth/model"
+	"github.com/kidstuff/auth/authmodel"
 	"github.com/kidstuff/conf"
 	"net/http"
 	"strings"
@@ -29,11 +29,11 @@ type HandleFunc func(*AuthContext, http.ResponseWriter, *http.Request) (int, err
 
 type AuthContext struct {
 	context.Context
-	Auth          model.Manager
+	Auth          authmodel.Manager
 	Settings      conf.Configurator
 	Notifications Notificator
 	Logs          Logger
-	currentUser   *model.User
+	currentUser   *authmodel.User
 }
 
 func (ctx *AuthContext) saveToken(token string) {
@@ -45,7 +45,7 @@ func (ctx *AuthContext) saveId(id string) {
 }
 
 // ValidCurrentUser validate user privilege and cacuate user total privilege base on groups
-func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*model.User, error) {
+func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*authmodel.User, error) {
 	if ctx.currentUser == nil {
 		//try to query current user
 		token, ok := ctx.Value(userTokenKey).(string)
@@ -91,7 +91,7 @@ func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*mod
 	return ctx.currentUser, err
 }
 
-func validCurrentUser(authCtx *AuthContext, user *model.User, owner bool, groups, privilege []string) error {
+func validCurrentUser(authCtx *AuthContext, user *authmodel.User, owner bool, groups, privilege []string) error {
 	// check for the current user
 	if owner {
 		sid, ok := authCtx.Context.Value(userIdKey).(string)
@@ -146,7 +146,7 @@ type Condition struct {
 }
 
 // BasicMngrHandler can be use in "manager" ServeHTTP after initital required interface like
-// model.UserManager, model.GroupManager, conf.Configurator...etc
+// authmodel.UserManager, authmodel.GroupManager, conf.Configurator...etc
 func BasicMngrHandler(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request, cond *Condition, fn HandleFunc) {
 	var cancel context.CancelFunc
 	authCtx.Context, cancel = context.WithTimeout(context.Background(), time.Minute*2)

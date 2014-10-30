@@ -3,7 +3,7 @@ package auth
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
-	"github.com/kidstuff/auth/model"
+	"github.com/kidstuff/auth/authmodel"
 	"net/http"
 	"strconv"
 	"strings"
@@ -39,7 +39,7 @@ func UpdateUserProfile(authCtx *AuthContext, rw http.ResponseWriter, req *http.R
 		return http.StatusNotFound, err
 	}
 
-	p := &model.Profile{}
+	p := &authmodel.Profile{}
 	err = json.NewDecoder(req.Body).Decode(p)
 	if err != nil {
 		return http.StatusBadRequest, err
@@ -85,7 +85,7 @@ func ListUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 	}
 
 	response := struct {
-		Users []*model.User
+		Users []*authmodel.User
 		Next  string
 	}{users, next}
 

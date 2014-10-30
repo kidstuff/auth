@@ -2,7 +2,7 @@ package auth
 
 import (
 	"encoding/json"
-	"github.com/kidstuff/auth/model"
+	"github.com/kidstuff/auth/authmodel"
 	"net/http"
 	"strconv"
 	"strings"
@@ -34,7 +34,7 @@ func ListGroup(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) 
 	}
 
 	response := struct {
-		Groups []*model.Group
+		Groups []*authmodel.Group
 		Next   string
 	}{groups, next}
 
