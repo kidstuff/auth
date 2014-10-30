@@ -71,7 +71,7 @@ func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*aut
 		groups, err := ctx.Auth.FindSomeGroup(aid...)
 		if err == nil {
 			for _, v := range groups {
-				for _, p := range v.Privilege {
+				for _, p := range v.Privileges {
 					mPri[p] = true
 				}
 			}

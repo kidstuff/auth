@@ -78,10 +78,10 @@ type Address struct {
 }
 
 type Group struct {
-	Id        *string    `bson:"Id,omitempty"`
-	Name      *string    `bson:"Name,omitempty" json:",omitempty"`
-	Info      *GroupInfo `bson:"Info,omitempty" json:",omitempty"`
-	Privilege []string   `bson:"Privilege,omitempty" json:",omitempty"`
+	Id         *string    `bson:"Id,omitempty"`
+	Name       *string    `bson:"Name,omitempty" json:",omitempty"`
+	Info       *GroupInfo `bson:"Info,omitempty" json:",omitempty"`
+	Privileges []string   `bson:"Privileges,omitempty" json:",omitempty"`
 }
 
 type GroupInfo struct {

@@ -36,5 +36,8 @@ func Serve(router *mux.Router) {
 		HANDLER_REGISTER(ListUser, false, []string{"admin"}, []string{"manage_user"}))
 
 	router.Handle("/groups",
+		HANDLER_REGISTER(CreateGroup, false, []string{"admin"}, []string{"manage_user"})).Methods("POST")
+
+	router.Handle("/groups",
 		HANDLER_REGISTER(ListGroup, false, []string{"admin"}, []string{"manage_user"}))
 }

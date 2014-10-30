@@ -8,6 +8,27 @@ import (
 	"strings"
 )
 
+func CreateGroup(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
+	groups := &authmodel.Group{}
+	err := json.NewDecoder(req.Body).Decode(groups)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	req.Body.Close()
+
+	groups, err = authCtx.Auth.AddGroupDetail(*groups.Name, groups.Privileges, groups.Info)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	err = json.NewEncoder(rw).Encode(groups)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return http.StatusOK, nil
+}
+
 func ListGroup(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	limit, err := strconv.Atoi(req.FormValue("limit"))
 	if err != nil {
