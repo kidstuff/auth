@@ -68,7 +68,8 @@ type Manager interface {
 	// FindGroupByName find the group specific by name.
 	FindGroupByName(name string) (*Group, error)
 	// FindSomeGroup find and return a slice of group specific by thier id.
-	FindSomeGroup(id ...string) ([]*Group, error)
+	// Specific fields name for porjection select.
+	FindSomeGroup(id []string, fields []string) ([]*Group, error)
 	// FindAllGroup finds and return a slice of group.
 	// If limit < 0 the mean using the default upper limit.
 	// If limit == 0 return empty result with error indicate no result found.
