@@ -32,6 +32,12 @@ func Serve(router *mux.Router) {
 	router.Handle("/users/{user_id}/approve",
 		HANDLER_REGISTER(UpdateApprovedStatus, false, []string{"manage_user"})).Methods("PUT")
 
+	router.Handle("/users/{user_id}/groups/{group_id}",
+		HANDLER_REGISTER(RemoveGroupFromUser, false, []string{"manage_user"})).Methods("DELETE")
+
+	router.Handle("/users/{user_id}/groups",
+		HANDLER_REGISTER(AddGroupToUser, false, []string{"manage_user"})).Methods("PUT")
+
 	router.Handle("/users",
 		HANDLER_REGISTER(ListUser, false, []string{"manage_user"}))
 

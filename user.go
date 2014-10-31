@@ -9,15 +9,24 @@ import (
 	"strings"
 )
 
-func GetUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
+func findUser(ctx *AuthContext, req *http.Request) (*authmodel.User, int, error) {
 	sid := mux.Vars(req)["user_id"]
 	if len(sid) == 0 {
-		return http.StatusBadRequest, ErrInvalidId
+		return nil, http.StatusBadRequest, ErrInvalidId
 	}
 
-	u, err := authCtx.Auth.FindUser(sid)
+	u, err := ctx.Auth.FindUser(sid)
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return u, http.StatusOK, nil
+}
+
+func GetUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
+	u, stt, err := findUser(authCtx, req)
+	if err != nil {
+		return stt, err
 	}
 
 	err = json.NewEncoder(rw).Encode(u)
@@ -29,14 +38,9 @@ func GetUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (i
 }
 
 func UpdateUserProfile(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
-	sid := mux.Vars(req)["user_id"]
-	if len(sid) == 0 {
-		return http.StatusBadRequest, ErrInvalidId
-	}
-
-	u, err := authCtx.Auth.FindUser(sid)
+	u, stt, err := findUser(authCtx, req)
 	if err != nil {
-		return http.StatusNotFound, err
+		return stt, err
 	}
 
 	p := &authmodel.Profile{}
@@ -98,14 +102,9 @@ func ListUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 }
 
 func UpdateApprovedStatus(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
-	sid := mux.Vars(req)["user_id"]
-	if len(sid) == 0 {
-		return http.StatusBadRequest, ErrInvalidId
-	}
-
-	u, err := authCtx.Auth.FindUser(sid)
+	u, stt, err := findUser(authCtx, req)
 	if err != nil {
-		return http.StatusNotFound, err
+		return stt, err
 	}
 
 	app := struct{ Approved bool }{}
@@ -116,6 +115,67 @@ func UpdateApprovedStatus(authCtx *AuthContext, rw http.ResponseWriter, req *htt
 	req.Body.Close()
 
 	err = authCtx.Auth.UpdateUserDetail(*u.Id, nil, &app.Approved, nil, nil, nil, nil)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return http.StatusOK, nil
+}
+
+func AddGroupToUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
+	u, stt, err := findUser(authCtx, req)
+	if err != nil {
+		return stt, err
+	}
+
+	g := struct{ Id string }{}
+	err = json.NewDecoder(req.Body).Decode(&g)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+	req.Body.Close()
+
+	for _, group := range u.Groups {
+		if *group.Id == g.Id {
+			return http.StatusOK, nil
+		}
+	}
+
+	ids := make([]string, 1, len(u.Groups)+1)
+	ids[0] = g.Id
+	for _, group := range u.Groups {
+		ids = append(ids, *group.Id)
+	}
+
+	err = authCtx.Auth.UpdateUserDetail(*u.Id, nil, nil, nil, nil, nil, ids)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return http.StatusOK, nil
+}
+
+func RemoveGroupFromUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
+	params := mux.Vars(req)
+	sid := params["user_id"]
+	gid := params["group_id"]
+	if len(sid) == 0 || len(gid) == 0 {
+		return http.StatusBadRequest, ErrInvalidId
+	}
+
+	u, err := authCtx.Auth.FindUser(sid)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	ids := make([]string, 0, len(u.Groups))
+	for _, group := range u.Groups {
+		if *group.Id != gid {
+			ids = append(ids, *group.Id)
+		}
+	}
+
+	err = authCtx.Auth.UpdateUserDetail(*u.Id, nil, nil, nil, nil, nil, ids)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
