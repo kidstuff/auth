@@ -15,7 +15,7 @@ var (
 	OnlineThreshold = time.Hour
 	// HANDLER_REGISTER should be "overided" by the "manager". Implement of this function
 	// must use the "or" logic for the conditions.
-	HANDLER_REGISTER func(fn HandleFunc, owner bool, groups, pri []string) http.Handler
+	HANDLER_REGISTER func(fn HandleFunc, owner bool, pri []string) http.Handler
 )
 
 type ctxKey int
@@ -45,7 +45,7 @@ func (ctx *AuthContext) saveId(id string) {
 }
 
 // ValidCurrentUser validate user privilege and cacuate user total privilege base on groups
-func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*authmodel.User, error) {
+func (ctx *AuthContext) ValidCurrentUser(owner bool, pri []string) (*authmodel.User, error) {
 	if ctx.currentUser == nil {
 		//try to query current user
 		token, ok := ctx.Value(userTokenKey).(string)
@@ -87,33 +87,15 @@ func (ctx *AuthContext) ValidCurrentUser(owner bool, groups, pri []string) (*aut
 		ctx.currentUser.Privileges = aPri
 	}
 
-	err := validCurrentUser(ctx, ctx.currentUser, owner, groups, pri)
+	err := validCurrentUser(ctx, ctx.currentUser, owner, pri)
 	return ctx.currentUser, err
 }
 
-func validCurrentUser(authCtx *AuthContext, user *authmodel.User, owner bool, groups, privilege []string) error {
+func validCurrentUser(authCtx *AuthContext, user *authmodel.User, owner bool, privilege []string) error {
 	// check for the current user
 	if owner {
 		sid, ok := authCtx.Context.Value(userIdKey).(string)
 		if !ok || len(sid) == 0 || sid != *user.Id {
-			return ErrForbidden
-		}
-	}
-
-	// check if any groups of the current user match one of the required groups
-	if len(groups) > 0 {
-		foundGroup := false
-	LOOP_GROUP:
-		for _, bg := range user.Groups {
-			for _, g2 := range groups {
-				if *bg.Name == g2 {
-					foundGroup = true
-					break LOOP_GROUP
-				}
-			}
-		}
-
-		if !foundGroup {
 			return ErrForbidden
 		}
 	}
@@ -140,9 +122,8 @@ func validCurrentUser(authCtx *AuthContext, user *authmodel.User, owner bool, gr
 }
 
 type Condition struct {
-	RequiredGroups []string
-	RequiredPri    []string
-	Owner          bool
+	RequiredPri []string
+	Owner       bool
 }
 
 // BasicMngrHandler can be use in "manager" ServeHTTP after initital required interface like
@@ -160,8 +141,8 @@ func BasicMngrHandler(authCtx *AuthContext, rw http.ResponseWriter, req *http.Re
 	authCtx.Logs, _ = NewSysLogger("kidstuff/auth")
 
 	rw.Header().Set("Content-Type", "application/json; charset=utf-8")
-	if cond.RequiredGroups != nil || cond.RequiredPri != nil || cond.Owner {
-		_, err := authCtx.ValidCurrentUser(cond.Owner, cond.RequiredGroups, cond.RequiredPri)
+	if cond.RequiredPri != nil || cond.Owner {
+		_, err := authCtx.ValidCurrentUser(cond.Owner, cond.RequiredPri)
 		if err != nil {
 			JSONError(rw, err.Error(), http.StatusForbidden)
 			return
