@@ -37,6 +37,20 @@ func GetUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (i
 	return http.StatusOK, nil
 }
 
+func DeleteUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
+	u, stt, err := findUser(authCtx, req)
+	if err != nil {
+		return stt, err
+	}
+
+	err = authCtx.Auth.DeleteUser(*u.Id)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	return http.StatusOK, nil
+}
+
 func UpdateUserProfile(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	u, stt, err := findUser(authCtx, req)
 	if err != nil {

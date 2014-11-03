@@ -21,10 +21,16 @@ func Serve(router *mux.Router) {
 		HANDLER_REGISTER(Activate, false, nil))
 
 	router.Handle("/users/{user_id}/password",
-		HANDLER_REGISTER(UpdatePassword, true, []string{"manage_user"})).Methods("PUT")
+		HANDLER_REGISTER(ChangePassword, true, nil)).Methods("PUT")
+
+	router.Handle("/users/{user_id}/password/override",
+		HANDLER_REGISTER(OverridePassword, false, []string{"manage_user"})).Methods("PUT")
 
 	router.Handle("/users/{user_id}",
 		HANDLER_REGISTER(GetUser, true, []string{"manage_user"})).Methods("GET")
+
+	router.Handle("/users/{user_id}",
+		HANDLER_REGISTER(DeleteUser, true, []string{"manage_user"})).Methods("DELETE")
 
 	router.Handle("/users/{user_id}/profile",
 		HANDLER_REGISTER(UpdateUserProfile, true, []string{"manage_user"})).Methods("PATCH")
