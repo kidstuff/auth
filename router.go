@@ -45,7 +45,10 @@ func Serve(router *mux.Router) {
 		HANDLER_REGISTER(AddGroupToUser, false, []string{"manage_user"})).Methods("PUT")
 
 	router.Handle("/users",
-		HANDLER_REGISTER(ListUser, false, []string{"manage_user"}))
+		HANDLER_REGISTER(ListUser, false, []string{"manage_user"})).Methods("GET")
+
+	router.Handle("/users",
+		HANDLER_REGISTER(CreateUser, false, []string{"manage_user"})).Methods("POST")
 
 	router.Handle("/groups",
 		HANDLER_REGISTER(CreateGroup, false, []string{"manage_user"})).Methods("POST")

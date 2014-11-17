@@ -9,6 +9,31 @@ import (
 	"strings"
 )
 
+func CreateUser(ctx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
+	info := struct {
+		Email     string
+		Pwd       string
+		PwdRepeat string
+		Approved  bool
+	}{}
+
+	err := json.NewDecoder(req.Body).Decode(&info)
+	if err != nil {
+		return http.StatusBadRequest, err
+	}
+
+	if info.Pwd != info.PwdRepeat {
+		return http.StatusBadRequest, ErrPwdMismatch
+	}
+
+	_, err = ctx.Auth.AddUser(info.Email, info.PwdRepeat, info.Approved)
+	if err != nil {
+		return http.StatusPreconditionFailed, err
+	}
+
+	return http.StatusOK, nil
+}
+
 func findUser(ctx *AuthContext, req *http.Request) (*authmodel.User, int, error) {
 	sid := mux.Vars(req)["user_id"]
 	if len(sid) == 0 {

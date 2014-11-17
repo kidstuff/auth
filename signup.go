@@ -2,7 +2,6 @@ package auth
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -47,7 +46,7 @@ func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (in
 	}
 
 	if credential.Pwd != credential.PwdRepeat {
-		return http.StatusBadRequest, errors.New("kidstuff/auth: Pwd and PwdRepeat doesn't match")
+		return http.StatusBadRequest, ErrPwdMismatch
 	}
 
 	app := true

@@ -9,4 +9,5 @@ var (
 	ErrInvalidId         = errors.New("kidstuff/auth: Invalif Id")
 	ErrInvalidActiveCode = errors.New("kidstuff/auth: Invalid activate code")
 	ErrForbidden         = errors.New("kidstuff/auth: Forbidden")
+	ErrPwdMismatch       = errors.New("kidstuff/auth: Pwd and PwdRepeat doesn't match")
 )
