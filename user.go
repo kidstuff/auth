@@ -207,11 +207,18 @@ func RemoveGroupFromUser(authCtx *AuthContext, rw http.ResponseWriter, req *http
 		return http.StatusInternalServerError, err
 	}
 
-	ids := make([]string, 0, len(u.Groups))
+	n := len(u.Groups)
+	ids := make([]string, 0, n)
 	for _, group := range u.Groups {
 		if *group.Id != gid {
 			ids = append(ids, *group.Id)
 		}
+	}
+
+	// if the only group was removed, then ids must be a zeroed slice (not an nil slice).
+	// That allow UpdateUserDetail take the action
+	if len(ids) == 0 && n == 1 {
+		ids = []string{}
 	}
 
 	err = authCtx.Auth.UpdateUserDetail(*u.Id, nil, nil, nil, nil, nil, ids)
