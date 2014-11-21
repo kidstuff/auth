@@ -1,0 +1,217 @@
+{  
+    "swagger":"2.0",
+    "info":{  
+        "version":"0.0.1",
+        "title":"kidstuff/auth"
+    },
+    "paths":{  
+        "/signup":{  
+            "post":{  
+                "summary":"register new account",
+                "description":"reister new account action make by new user.",
+                "parameters":[  
+                    {  
+                        "name":"credential",
+                        "in":"body",
+                        "description":"The JSON credential for creating new account.",
+                        "schema":{  
+                            "$ref":"#/definitions/Credential"
+                        },
+                        "required":true
+                    }
+                ],
+                "responses":{  
+                    "200":{  
+                        "description":"New user registerd (may waiting for approval)."
+                    },
+                    "400":{  
+                        "description":"Invalid Credential."
+                    },
+                    "412":{  
+                        "description":"Email used."
+                    },
+                    "500":{  
+                        "description":"Internal error."
+                    }
+                }
+            }
+        },
+        "/tokens":{  
+            "get":{  
+                "summary":"Obtain access token.",
+                "description":"Obtain access token. Current only support password grant type.",
+                "responses":{  
+                    "400":{  
+                        "description":"Invlaid grant_type or user email/password."
+                    },
+                    "401":{  
+                        "description":"Wrong email/password."
+                    }
+                },
+                "parameters":[  
+                    {  
+                        "name":"email",
+                        "in":"query",
+                        "type":"string"
+                    },
+                    {  
+                        "name":"password",
+                        "in":"query",
+                        "type":"string"
+                    },
+                    {  
+                        "name":"grant_type",
+                        "in":"query",
+                        "type":"string",
+                        "description":"current only \"password\" support."
+                    }
+                ]
+            }
+        },
+        "/users":{  
+            "get":{  
+                "summary":"List all user. Require \"manage_user\" permission.",
+                "description":"List a slice of user. The number of object return maybe limit by the manager setting.",
+                "responses":{  
+                    "200":{  
+                        "description":"List of user.",
+                        "schema":{  
+                            "type":"array",
+                            "items":{  
+                                "$ref":"#/definitions/User"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions":{  
+        "Credential":{  
+            "properties":{  
+                "Email":{  
+                    "type":"string"
+                },
+                "Pwd":{  
+                    "type":"string"
+                },
+                "PwdRepeat":{  
+                    "type":"string"
+                },
+                "Approved":{  
+                    "type":"boolean"
+                }
+            }
+        },
+        "Profile":{  
+            "properties":{  
+                "FirstName":{  
+                    "type":"string"
+                },
+                "LastName":{  
+                    "type":"string"
+                },
+                "MiddleName":{  
+                    "type":"string"
+                },
+                "NickName":{  
+                    "type":"string"
+                },
+                "BirthDay":{  
+                    "description":"RFC 3339 time format",
+                    "type":"string"
+                },
+                "JoinDay":{  
+                    "description":"RFC 3339 time format",
+                    "type":"string"
+                },
+                "Phones":{  
+                    "type":"array",
+                    "items":{  
+                        "type":"string"
+                    }
+                },
+                "Addresses":{  
+                    "$ref":"#/definitions/Address"
+                }
+            }
+        },
+        "Address":{  
+            "properties":{  
+                "Country":{  
+                    "type":"string"
+                },
+                "State":{  
+                    "type":"string"
+                },
+                "City":{  
+                    "type":"string"
+                },
+                "District":{  
+                    "type":"string"
+                },
+                "Street":{  
+                    "type":"string"
+                }
+            }
+        },
+        "Group":{  
+            "properties":{  
+                "Id":{  
+                    "type":"string"
+                },
+                "Name":{  
+                    "type":"string"
+                },
+                "Privileges":{  
+                    "type":"array",
+                    "items":{  
+                        "type":"string"
+                    }
+                },
+                "Info":{  
+                    "$ref":"#/definitions/GroupInfo"
+                }
+            }
+        },
+        "GroupInfo":{  
+            "properties":{  
+                "Description":{  
+                    "type":"string"
+                }
+            }
+        },
+        "User":{  
+            "properties":{  
+                "Id":{  
+                    "type":"string"
+                },
+                "Email":{  
+                    "type":"string"
+                },
+                "LastActivity":{  
+                    "description":"RFC 3339 time format",
+                    "type":"string"
+                },
+                "Privileges":{  
+                    "type":"array",
+                    "items":{  
+                        "type":"string"
+                    }
+                },
+                "Approved":{  
+                    "type":"boolean"
+                },
+                "ConfirmCodes":{  
+                    "type":"object"
+                },
+                "Profile":{  
+                    "$ref":"#/definitions/Profile"
+                },
+                "Groups":{  
+                    "$ref":"#/definitions/Group"
+                }
+            }
+        }
+    }
+}

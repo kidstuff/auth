@@ -78,6 +78,7 @@ type Address struct {
 	Street   *string `bson:"Street" json:",omitempty"`
 }
 
+// Group is a way to group some privileges into one.
 type Group struct {
 	Id         *string    `bson:"Id,omitempty"`
 	Name       *string    `bson:"Name,omitempty" json:",omitempty"`
