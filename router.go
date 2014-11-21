@@ -55,4 +55,13 @@ func Serve(router *mux.Router) {
 
 	router.Handle("/groups",
 		HANDLER_REGISTER(ListGroup, false, []string{"manage_user"}))
+
+	router.Handle("/groups/{group_id}",
+		HANDLER_REGISTER(GetGroup, false, []string{"manage_user"})).Methods("GET")
+
+	router.Handle("/groups/{group_id}",
+		HANDLER_REGISTER(UpdateGroup, false, []string{"manage_user"})).Methods("PATCH")
+
+	router.Handle("/groups/{group_id}",
+		HANDLER_REGISTER(DeleteGroup, false, []string{"manage_user"})).Methods("DELETE")
 }
