@@ -19,6 +19,7 @@ var (
 	ErrInvalidPassword = errors.New("auth: invalid password")
 	ErrNotLogged       = errors.New("auth: no login user found")
 	ErrDuplicateName   = errors.New("auth: duplicate Group Name")
+	ErrNotFound        = errors.New("auth: not found")
 )
 
 type User struct {

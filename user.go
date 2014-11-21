@@ -42,6 +42,10 @@ func findUser(ctx *AuthContext, req *http.Request) (*authmodel.User, int, error)
 
 	u, err := ctx.Auth.FindUser(sid)
 	if err != nil {
+		if err == authmodel.ErrNotFound {
+			return nil, http.StatusNotFound, err
+		}
+
 		return nil, http.StatusInternalServerError, err
 	}
 
@@ -63,12 +67,12 @@ func GetUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (i
 }
 
 func DeleteUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
-	u, stt, err := findUser(authCtx, req)
-	if err != nil {
-		return stt, err
+	sid := mux.Vars(req)["user_id"]
+	if len(sid) == 0 {
+		return http.StatusBadRequest, ErrInvalidId
 	}
 
-	err = authCtx.Auth.DeleteUser(*u.Id)
+	err := authCtx.Auth.DeleteUser(sid)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
