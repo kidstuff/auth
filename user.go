@@ -26,9 +26,14 @@ func CreateUser(ctx *AuthContext, rw http.ResponseWriter, req *http.Request) (in
 		return http.StatusBadRequest, ErrPwdMismatch
 	}
 
-	_, err = ctx.Auth.AddUser(info.Email, info.PwdRepeat, info.Approved)
+	u, err := ctx.Auth.AddUser(info.Email, info.PwdRepeat, info.Approved)
 	if err != nil {
 		return http.StatusPreconditionFailed, err
+	}
+
+	err = json.NewEncoder(rw).Encode(u)
+	if err != nil {
+		return http.StatusInternalServerError, err
 	}
 
 	return http.StatusOK, nil
