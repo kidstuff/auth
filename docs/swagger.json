@@ -1,217 +1,460 @@
-{  
-    "swagger":"2.0",
-    "info":{  
-        "version":"0.0.1",
-        "title":"kidstuff/auth"
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "0.0.1",
+        "title": "kidstuff/auth"
     },
-    "paths":{  
-        "/signup":{  
-            "post":{  
-                "summary":"register new account",
-                "description":"reister new account action make by new user.",
-                "parameters":[  
-                    {  
-                        "name":"credential",
-                        "in":"body",
-                        "description":"The JSON credential for creating new account.",
-                        "schema":{  
-                            "$ref":"#/definitions/Credential"
+    "paths": {
+        "/signup": {
+            "post": {
+                "summary": "register new account",
+                "description": "reister new account action make by new user.",
+                "parameters": [
+                    {
+                        "name": "credential",
+                        "in": "body",
+                        "description": "The JSON credential for creating new account.",
+                        "schema": {
+                            "$ref": "#/definitions/Credential"
                         },
-                        "required":true
+                        "required": true
                     }
                 ],
-                "responses":{  
-                    "200":{  
-                        "description":"New user registerd (may waiting for approval)."
+                "responses": {
+                    "200": {
+                        "description": "New user registerd (may waiting for approval)."
                     },
-                    "400":{  
-                        "description":"Invalid Credential."
+                    "400": {
+                        "description": "Invalid Credential."
                     },
-                    "412":{  
-                        "description":"Email used."
+                    "412": {
+                        "description": "Email used."
                     },
-                    "500":{  
-                        "description":"Internal error."
+                    "500": {
+                        "description": "Internal error."
                     }
                 }
             }
         },
-        "/tokens":{  
-            "get":{  
-                "summary":"Obtain access token.",
-                "description":"Obtain access token. Current only support password grant type.",
-                "responses":{  
-                    "400":{  
-                        "description":"Invlaid grant_type or user email/password."
-                    },
-                    "401":{  
-                        "description":"Wrong email/password."
+        "/users/{user_id}/active": {
+            "get": {
+                "summary": "User active their account after regis.",
+                "description": "User active their account after regis.",
+                "responses": {
+                    "200": {
+                        "description": "User approval success."
                     }
                 },
-                "parameters":[  
-                    {  
-                        "name":"email",
-                        "in":"query",
-                        "type":"string"
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "type": "string"
                     },
-                    {  
-                        "name":"password",
-                        "in":"query",
-                        "type":"string"
-                    },
-                    {  
-                        "name":"grant_type",
-                        "in":"query",
-                        "type":"string",
-                        "description":"current only \"password\" support."
+                    {
+                        "name": "code",
+                        "in": "query",
+                        "type": "string",
+                        "description": "Activation code."
                     }
                 ]
             }
         },
-        "/users":{  
-            "get":{  
-                "summary":"List all user. Require \"manage_user\" permission.",
-                "description":"List a slice of user. The number of object return maybe limit by the manager setting.",
-                "responses":{  
-                    "200":{  
-                        "description":"List of user.",
-                        "schema":{  
-                            "type":"array",
-                            "items":{  
-                                "$ref":"#/definitions/User"
+        "/tokens": {
+            "get": {
+                "summary": "Obtain access token.",
+                "description": "Obtain access token. Current only support password grant type.",
+                "responses": {
+                    "400": {
+                        "description": "Invlaid grant_type or user email/password."
+                    },
+                    "401": {
+                        "description": "Wrong email/password."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "email",
+                        "in": "query",
+                        "type": "string"
+                    },
+                    {
+                        "name": "password",
+                        "in": "query",
+                        "type": "string"
+                    },
+                    {
+                        "name": "grant_type",
+                        "in": "query",
+                        "type": "string",
+                        "description": "current only \"password\" support."
+                    }
+                ]
+            }
+        },
+        "/users": {
+            "get": {
+                "summary": "List all user. Require \"manage_user\" permission.",
+                "description": "List a slice of user. The number of object return maybe limit by the manager setting.",
+                "security": [
+                    {
+                        "bearer": [
+                            "manage_user"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of user.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/User"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "internal error."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "type": "string",
+                        "description": "offset id"
+                    },
+                    {
+                        "name": "select",
+                        "in": "query",
+                        "type": "string",
+                        "description": "string of selected field separated by comma. Example \"Id,Name,LastActivity\""
+                    },
+                    {
+                        "name": "groups",
+                        "in": "query",
+                        "type": "string",
+                        "description": "sting of selected group id field separated by comma."
+                    }
+                ]
+            },
+            "post": {
+                "summary": "Create new user. Require \"manage_user\" privilege.",
+                "description": "Create new user. Require \"manage_user\" privilege.",
+                "security": [
+                    {
+                        "bearer": [
+                            "manage_user"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Create user success.",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "412": {
+                        "description": "Email used."
+                    }
+                }
+            }
+        },
+        "/users/{user_id}": {
+            "get": {
+                "summary": "Get user info specific by id.",
+                "description": "Get user info specific by id.",
+                "security": [
+                    {
+                        "bearer": [
+                            "manage_user"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Get user success",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "type": "string"
+                    }
+                ]
+            },
+            "delete": {
+                "summary": "Delete use. Require \"manage_user\" privilege.",
+                "description": "Delete use. Require \"manage_user\" privilege.",
+                "security": [
+                    {
+                        "bearer": [
+                            "manage_user"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Delete user success."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/users/{user_id}/profile": {
+            "patch": {
+                "summary": "Update user Profile",
+                "description": "Patch update user Profile.",
+                "security": [
+                    {
+                        "bearer": [
+                            "manage_user"
+                        ]
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Update user success."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "type": "string"
+                    },
+                    {
+                        "name": "profile",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Profile"
+                        }
+                    }
+                ]
+            }
+        },
+        "/users/{user_id}/password": {
+            "put": {
+                "summary": "Change user password action by the owner.",
+                "description": "Change user password action by the owner of that account not from the admin.",
+                "responses": {
+                    "200": {
+                        "description": "Change password success."
+                    },
+                    "400": {
+                        "description": "NewPwd and NewPwdrepeat not match."
+                    },
+                    "412": {
+                        "description": "OldPwd incorrect."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "type": "string"
+                    },
+                    {
+                        "name": "password",
+                        "in": "body",
+                        "schema": {
+                            "properties": {
+                                "OldPwd": {
+                                    "type": "string",
+                                    "description": "current password."
+                                },
+                                "NewPwd": {
+                                    "type": "string"
+                                },
+                                "NewPwdRepeat": {
+                                    "type": "string"
+                                }
                             }
                         }
                     }
+                ]
+            }
+        },
+        "/users/{user_id}/password/override": {
+            "put": {
+                "summary": "Change user password action by admin.",
+                "description": "Change user password action by the admin.",
+                "responses": {
+                    "200": {
+                        "description": "User approval success."
+                    },
+                    "400": {
+                        "description": "NewPwd and NewPwdrepeat not match."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "type": "string"
+                    },
+                    {
+                        "name": "password",
+                        "in": "body",
+                        "schema": {
+                            "properties": {
+                                "NewPwd": {
+                                    "type": "string"
+                                },
+                                "NewPwdRepeat": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "definitions": {
+        "Credential": {
+            "properties": {
+                "Email": {
+                    "type": "string"
+                },
+                "Pwd": {
+                    "type": "string"
+                },
+                "PwdRepeat": {
+                    "type": "string"
+                },
+                "Approved": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "Profile": {
+            "properties": {
+                "FirstName": {
+                    "type": "string"
+                },
+                "LastName": {
+                    "type": "string"
+                },
+                "MiddleName": {
+                    "type": "string"
+                },
+                "NickName": {
+                    "type": "string"
+                },
+                "BirthDay": {
+                    "description": "RFC 3339 time format",
+                    "type": "string"
+                },
+                "JoinDay": {
+                    "description": "RFC 3339 time format",
+                    "type": "string"
+                },
+                "Phones": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "Addresses": {
+                    "$ref": "#/definitions/Address"
+                }
+            }
+        },
+        "Address": {
+            "properties": {
+                "Country": {
+                    "type": "string"
+                },
+                "State": {
+                    "type": "string"
+                },
+                "City": {
+                    "type": "string"
+                },
+                "District": {
+                    "type": "string"
+                },
+                "Street": {
+                    "type": "string"
+                }
+            }
+        },
+        "Group": {
+            "properties": {
+                "Id": {
+                    "type": "string"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "Privileges": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "Info": {
+                    "$ref": "#/definitions/GroupInfo"
+                }
+            }
+        },
+        "GroupInfo": {
+            "properties": {
+                "Description": {
+                    "type": "string"
+                }
+            }
+        },
+        "User": {
+            "properties": {
+                "Id": {
+                    "type": "string"
+                },
+                "Email": {
+                    "type": "string"
+                },
+                "LastActivity": {
+                    "description": "RFC 3339 time format",
+                    "type": "string"
+                },
+                "Privileges": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "Approved": {
+                    "type": "boolean"
+                },
+                "ConfirmCodes": {
+                    "type": "object"
+                },
+                "Profile": {
+                    "$ref": "#/definitions/Profile"
+                },
+                "Groups": {
+                    "$ref": "#/definitions/Group"
                 }
             }
         }
     },
-    "definitions":{  
-        "Credential":{  
-            "properties":{  
-                "Email":{  
-                    "type":"string"
-                },
-                "Pwd":{  
-                    "type":"string"
-                },
-                "PwdRepeat":{  
-                    "type":"string"
-                },
-                "Approved":{  
-                    "type":"boolean"
-                }
-            }
-        },
-        "Profile":{  
-            "properties":{  
-                "FirstName":{  
-                    "type":"string"
-                },
-                "LastName":{  
-                    "type":"string"
-                },
-                "MiddleName":{  
-                    "type":"string"
-                },
-                "NickName":{  
-                    "type":"string"
-                },
-                "BirthDay":{  
-                    "description":"RFC 3339 time format",
-                    "type":"string"
-                },
-                "JoinDay":{  
-                    "description":"RFC 3339 time format",
-                    "type":"string"
-                },
-                "Phones":{  
-                    "type":"array",
-                    "items":{  
-                        "type":"string"
-                    }
-                },
-                "Addresses":{  
-                    "$ref":"#/definitions/Address"
-                }
-            }
-        },
-        "Address":{  
-            "properties":{  
-                "Country":{  
-                    "type":"string"
-                },
-                "State":{  
-                    "type":"string"
-                },
-                "City":{  
-                    "type":"string"
-                },
-                "District":{  
-                    "type":"string"
-                },
-                "Street":{  
-                    "type":"string"
-                }
-            }
-        },
-        "Group":{  
-            "properties":{  
-                "Id":{  
-                    "type":"string"
-                },
-                "Name":{  
-                    "type":"string"
-                },
-                "Privileges":{  
-                    "type":"array",
-                    "items":{  
-                        "type":"string"
-                    }
-                },
-                "Info":{  
-                    "$ref":"#/definitions/GroupInfo"
-                }
-            }
-        },
-        "GroupInfo":{  
-            "properties":{  
-                "Description":{  
-                    "type":"string"
-                }
-            }
-        },
-        "User":{  
-            "properties":{  
-                "Id":{  
-                    "type":"string"
-                },
-                "Email":{  
-                    "type":"string"
-                },
-                "LastActivity":{  
-                    "description":"RFC 3339 time format",
-                    "type":"string"
-                },
-                "Privileges":{  
-                    "type":"array",
-                    "items":{  
-                        "type":"string"
-                    }
-                },
-                "Approved":{  
-                    "type":"boolean"
-                },
-                "ConfirmCodes":{  
-                    "type":"object"
-                },
-                "Profile":{  
-                    "$ref":"#/definitions/Profile"
-                },
-                "Groups":{  
-                    "$ref":"#/definitions/Group"
-                }
-            }
+    "securityDefinitions": {
+        "bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }
