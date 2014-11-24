@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
+	"path"
 )
 
 func sendWelcomeMail(authCtx *AuthContext, email string) (int, error) {
@@ -84,7 +85,8 @@ func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (in
 			return http.StatusInternalServerError, err
 		}
 
-		activeURL := fmt.Sprintf(mailSettings["auth_activate_page"], *u.Id, u.ConfirmCodes["activate"])
+		activeURL := fmt.Sprintf("%s/users/%s/activate?code=%s",
+			mailSettings["auth_full_path"], *u.Id, u.ConfirmCodes["activate"])
 		err = DEFAULT_NOTIFICATOR.SendMail(mailSettings["auth_activate_email_subject"],
 			fmt.Sprintf(mailSettings["auth_activate_email_message"], activeURL),
 			mailSettings["auth_email_from"], *u.Email)
@@ -125,6 +127,14 @@ func Activate(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 		return stt, err
 	}
 
-	rw.Write([]byte(`{"Message":"Account activated"}`))
+	activate_redirect, err := authCtx.Settings.Get("auth_activate_redirect")
+	if err != nil {
+		authCtx.Logs.Errorf("Error when fetching 'auth_activate_redirect' settings")
+		rw.Write([]byte(`{"Message":"Account activated"}`))
+	} else {
+		http.Redirect(rw, req, activate_redirect, http.StatusSeeOther)
+		rw.Write([]byte(`{"Message":"Account activated", "RedirectTo": "` + activate_redirect + `"}`))
+	}
+
 	return http.StatusOK, nil
 }

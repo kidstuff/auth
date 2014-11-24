@@ -64,4 +64,13 @@ func Serve(router *mux.Router) {
 
 	router.Handle("/groups/{group_id}",
 		HANDLER_REGISTER(DeleteGroup, false, []string{"manage_user"})).Methods("DELETE")
+
+	router.Handle("/settings",
+		HANDLER_REGISTER(UpdateSettings, false, []string{"manage_setting"})).Methods("PATCH")
+
+	router.Handle("/settings",
+		HANDLER_REGISTER(GetSettings, false, []string{"manage_setting"})).Methods("GET")
+
+	router.Handle("/settings",
+		HANDLER_REGISTER(DeleteSettings, false, []string{"manage_setting"})).Methods("DELETE")
 }
