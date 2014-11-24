@@ -213,6 +213,10 @@ func RemoveGroupFromUser(authCtx *AuthContext, rw http.ResponseWriter, req *http
 
 	u, err := authCtx.Auth.FindUser(sid)
 	if err != nil {
+		if err == authmodel.ErrNotFound {
+			return http.StatusNotFound, err
+		}
+
 		return http.StatusInternalServerError, err
 	}
 

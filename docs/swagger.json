@@ -93,6 +93,39 @@
             }
         },
         "/users": {
+            "post": {
+                "summary": "Create new user. Require \"manage_user\" privilege.",
+                "description": "Create new user. Require \"manage_user\" privilege.",
+                "security": [
+                    {
+                        "bearer": [
+                            "manage_user"
+                        ]
+                    }
+                ],
+                "parameters": [
+                    {
+                        "name": "credential",
+                        "in": "body",
+                        "description": "The JSON credential for creating new account.",
+                        "schema": {
+                            "$ref": "#/definitions/Credential"
+                        },
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Create user success.",
+                        "schema": {
+                            "$ref": "#/definitions/User"
+                        }
+                    },
+                    "412": {
+                        "description": "Email used."
+                    }
+                }
+            },
             "get": {
                 "summary": "List all user. Require \"manage_user\" permission.",
                 "description": "List a slice of user. The number of object return maybe limit by the manager setting.",
@@ -137,34 +170,12 @@
                         "description": "sting of selected group id field separated by comma."
                     }
                 ]
-            },
-            "post": {
-                "summary": "Create new user. Require \"manage_user\" privilege.",
-                "description": "Create new user. Require \"manage_user\" privilege.",
-                "security": [
-                    {
-                        "bearer": [
-                            "manage_user"
-                        ]
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Create user success.",
-                        "schema": {
-                            "$ref": "#/definitions/User"
-                        }
-                    },
-                    "412": {
-                        "description": "Email used."
-                    }
-                }
             }
         },
         "/users/{user_id}": {
             "get": {
-                "summary": "Get user info specific by id.",
-                "description": "Get user info specific by id.",
+                "summary": "Get user info specific by id. Require \"manage_user\" privilege.",
+                "description": "Get user info specific by id. Require \"manage_user\" privilege.",
                 "security": [
                     {
                         "bearer": [
@@ -214,8 +225,8 @@
         },
         "/users/{user_id}/profile": {
             "patch": {
-                "summary": "Update user Profile",
-                "description": "Patch update user Profile.",
+                "summary": "Update user Profile. Require \"manage_user\" privilege.",
+                "description": "Patch update user Profile. Require \"manage_user\" privilege.",
                 "security": [
                     {
                         "bearer": [
@@ -289,7 +300,7 @@
         "/users/{user_id}/password/override": {
             "put": {
                 "summary": "Change user password action by admin.",
-                "description": "Change user password action by the admin.",
+                "description": "Change user password action by admin.",
                 "responses": {
                     "200": {
                         "description": "User approval success."
@@ -317,6 +328,208 @@
                                 }
                             }
                         }
+                    }
+                ]
+            }
+        },
+        "/users/{user_id}/approve": {
+            "put": {
+                "summary": "Update user approved state. Requre \"manage_user\" privilege.",
+                "description": "Update user approved state. Requre \"manage_user\" privilege.",
+                "responses": {
+                    "200": {
+                        "description": "Update success"
+                    },
+                    "404": {
+                        "description": "User not found."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "type": "string"
+                    },
+                    {
+                        "name": "approval",
+                        "in": "body",
+                        "schema": {
+                            "properties": {
+                                "Approved": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "/users/{user_id}/groups": {
+            "put": {
+                "summary": "Add privilege group to user. Require \"manage_user\" privilege.",
+                "description": "Add privilege group to user. Require \"manage_user\" privilege.",
+                "responses": {
+                    "200": {
+                        "description": "Add success."
+                    },
+                    "404": {
+                        "description": "User not found."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "type": "string"
+                    },
+                    {
+                        "name": "group",
+                        "in": "body",
+                        "schema": {
+                            "properties": {
+                                "Id": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "/users/{user_id}/groups/{group_id}": {
+            "delete": {
+                "summary": "Remove privilege group from user. Require \"manage_user\" privilege.",
+                "description": "Remove privilege group from user. Require \"manage_user\" privilege.",
+                "responses": {
+                    "200": {
+                        "description": "Delete success."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "type": "string"
+                    },
+                    {
+                        "name": "group_id",
+                        "in": "path",
+                        "type": "string"
+                    }
+                ]
+            }
+        },
+        "/groups": {
+            "post": {
+                "summary": "Create new group. Require \"manage_user\" privilege.",
+                "description": "Create new group. Require \"manage_user\" privilege.",
+                "responses": {
+                    "200": {
+                        "description": "Create success.",
+                        "schema": {
+                            "$ref": "#/definitions/Group"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "group",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Group"
+                        }
+                    }
+                ]
+            },
+            "get": {
+                "summary": "List all group. Require \"manage_user\" privilege.",
+                "description": "List all group. Require \"manage_user\" privilege.",
+                "responses": {
+                    "200": {
+                        "description": "Get sucess.",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/Group"
+                            }
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "type": "string",
+                        "description": "offset id"
+                    },
+                    {
+                        "name": "select",
+                        "in": "query",
+                        "type": "string",
+                        "description": "string of selected field separated by comma. Example \"Id,Name\""
+                    }
+                ]
+            }
+        },
+        "/groups/{group_id}": {
+            "get": {
+                "summary": "Get group info. Require \"manage_user\" privilege.",
+                "description": "Get group info. Require \"manage_user\" privilege.",
+                "responses": {
+                    "200": {
+                        "description": "Get success",
+                        "schema": {
+                            "$ref": "#/definitions/Group"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "group_id",
+                        "in": "path",
+                        "type": "string"
+                    }
+                ]
+            },
+            "patch": {
+                "summary": "Update group info. Require \"manage_user\" privilege.",
+                "description": "Update group info. Require \"manage_user\" privilege.",
+                "responses": {
+                    "200": {
+                        "description": "Update success",
+                        "schema": {
+                            "$ref": "#/definitions/Group"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "group_id",
+                        "in": "path",
+                        "type": "string"
+                    },
+                    {
+                        "name": "group",
+                        "in": "body",
+                        "schema": {
+                            "$ref": "#/definitions/Group"
+                        }
+                    }
+                ]
+            },
+            "delete": {
+                "summary": "Delete group. Require \"manage_user\" privilege.",
+                "description": "Delete group. Require \"manage_user\" privilege.",
+                "responses": {
+                    "200": {
+                        "description": "Delete success."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "group_id",
+                        "in": "path",
+                        "type": "string"
                     }
                 ]
             }
