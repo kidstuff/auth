@@ -5,33 +5,54 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
-	"path"
 )
 
-func sendWelcomeMail(authCtx *AuthContext, email string) (int, error) {
-	if val, err := authCtx.Settings.
-		Get("auth_send_welcome_email"); err != nil || val != "true" {
-		return http.StatusOK, nil
+// TODO(!): figure out how to properly cancel the email send when time out
+
+func sendWelcomeMail(ctx *AuthContext, email string) error {
+	if val, err := ctx.Settings.Get("auth_send_welcome_email"); val != "true" {
+		return nil
+	} else if err != nil {
+		return err
 	}
 
-	mailSettings, err := authCtx.Settings.GetMulti([]string{
+	mailSettings, err := ctx.Settings.GetMulti([]string{
 		"auth_full_path",
 		"auth_welcome_email_subject",
 		"auth_welcome_email_message",
 		"auth_email_from",
 	})
 	if err != nil {
-		return http.StatusInternalServerError, err
+		return err
 	}
 
-	err = DEFAULT_NOTIFICATOR.SendMail(mailSettings["auth_welcome_email_subject"],
+	return ctx.Notifications.SendMail(ctx, mailSettings["auth_welcome_email_subject"],
 		mailSettings["auth_welcome_email_message"],
 		mailSettings["auth_email_from"], email)
-	if err != nil {
-		authCtx.Logs.Errorf("mail send error:%s", err)
+}
+
+func sendActivateMail(ctx *AuthContext, id, email, code string) error {
+	if val, err := ctx.Settings.Get("auth_send_activate_email"); val != "true" {
+		return nil
+	} else if err != nil {
+		return err
 	}
 
-	return http.StatusOK, nil
+	mailSettings, err := ctx.Settings.GetMulti([]string{
+		"auth_full_path",
+		"auth_activate_page",
+		"auth_activate_email_subject",
+		"auth_activate_email_message",
+		"auth_email_from",
+	})
+	if err != nil {
+		return err
+	}
+
+	activeURL := fmt.Sprintf("%s/users/%s/activate?code=%s", mailSettings["auth_full_path"], id, code)
+	return ctx.Notifications.SendMail(ctx, mailSettings["auth_activate_email_subject"],
+		fmt.Sprintf(mailSettings["auth_activate_email_message"], activeURL),
+		mailSettings["auth_email_from"], email)
 }
 
 func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
@@ -61,41 +82,22 @@ func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (in
 		return http.StatusPreconditionFailed, err
 	}
 
-	err = json.NewEncoder(rw).Encode(u)
-	if err != nil {
-		return http.StatusInternalServerError, err
-	}
-
+	status := 200
 	if app {
-		return sendWelcomeMail(authCtx, *u.Email)
+		err = sendWelcomeMail(authCtx, *u.Email)
+		if err != nil {
+			authCtx.Logs.Errorf("Wellcome mail failed: %s", err)
+		}
 	} else {
-		if val, err := authCtx.Settings.
-			Get("auth_send_activate_email"); err != nil || val != "true" {
-			return http.StatusOK, nil
-		}
-
-		mailSettings, err := authCtx.Settings.GetMulti([]string{
-			"auth_full_path",
-			"auth_activate_page",
-			"auth_activate_email_subject",
-			"auth_activate_email_message",
-			"auth_email_from",
-		})
+		err = sendActivateMail(authCtx, *u.Id, *u.Email, u.ConfirmCodes["activate"])
 		if err != nil {
-			return http.StatusInternalServerError, err
+			authCtx.Logs.Errorf("Active mail failed: %s", err)
 		}
-
-		activeURL := fmt.Sprintf("%s/users/%s/activate?code=%s",
-			mailSettings["auth_full_path"], *u.Id, u.ConfirmCodes["activate"])
-		err = DEFAULT_NOTIFICATOR.SendMail(mailSettings["auth_activate_email_subject"],
-			fmt.Sprintf(mailSettings["auth_activate_email_message"], activeURL),
-			mailSettings["auth_email_from"], *u.Email)
-		if err != nil {
-			authCtx.Logs.Errorf("Send mail failed:%s", err)
-		}
+		status = http.StatusAccepted
 	}
 
-	return http.StatusOK, nil
+	json.NewEncoder(rw).Encode(u)
+	return status, nil
 }
 
 func Activate(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
@@ -122,9 +124,9 @@ func Activate(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 		return http.StatusInternalServerError, err
 	}
 
-	stt, err := sendWelcomeMail(authCtx, *u.Email)
+	err = sendWelcomeMail(authCtx, *u.Email)
 	if err != nil {
-		return stt, err
+		authCtx.Logs.Errorf("Wellcome mail failed: %s", err)
 	}
 
 	activate_redirect, err := authCtx.Settings.Get("auth_activate_redirect")
