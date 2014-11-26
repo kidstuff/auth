@@ -49,13 +49,15 @@
                     {
                         "name": "user_id",
                         "in": "path",
-                        "type": "string"
+                        "type": "string",
+                        "required": true
                     },
                     {
                         "name": "code",
                         "in": "query",
                         "type": "string",
-                        "description": "Activation code."
+                        "description": "Activation code.",
+                        "required": true
                     }
                 ]
             }
@@ -87,7 +89,8 @@
                         "name": "grant_type",
                         "in": "query",
                         "type": "string",
-                        "description": "current only \"password\" support."
+                        "description": "current only \"password\" support.",
+                        "required": true
                     }
                 ]
             }
@@ -96,13 +99,6 @@
             "post": {
                 "summary": "Create new user. Require \"manage_user\" privilege.",
                 "description": "Create new user. Require \"manage_user\" privilege.",
-                "security": [
-                    {
-                        "bearer": [
-                            "manage_user"
-                        ]
-                    }
-                ],
                 "parameters": [
                     {
                         "name": "credential",
@@ -129,13 +125,6 @@
             "get": {
                 "summary": "List all user. Require \"manage_user\" permission.",
                 "description": "List a slice of user. The number of object return maybe limit by the manager setting.",
-                "security": [
-                    {
-                        "bearer": [
-                            "manage_user"
-                        ]
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "List of user.",
@@ -176,13 +165,6 @@
             "get": {
                 "summary": "Get user info specific by id. Require \"manage_user\" privilege.",
                 "description": "Get user info specific by id. Require \"manage_user\" privilege.",
-                "security": [
-                    {
-                        "bearer": [
-                            "manage_user"
-                        ]
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Get user success",
@@ -195,7 +177,8 @@
                     {
                         "name": "user_id",
                         "in": "path",
-                        "type": "string"
+                        "type": "string",
+                        "required": true
                     }
                 ]
             },
@@ -218,7 +201,8 @@
                     {
                         "name": "user_id",
                         "in": "path",
-                        "type": "string"
+                        "type": "string",
+                        "required": true
                     }
                 ]
             }
@@ -227,13 +211,6 @@
             "patch": {
                 "summary": "Update user Profile. Require \"manage_user\" privilege.",
                 "description": "Patch update user Profile. Require \"manage_user\" privilege.",
-                "security": [
-                    {
-                        "bearer": [
-                            "manage_user"
-                        ]
-                    }
-                ],
                 "responses": {
                     "200": {
                         "description": "Update user success."
@@ -243,14 +220,16 @@
                     {
                         "name": "user_id",
                         "in": "path",
-                        "type": "string"
+                        "type": "string",
+                        "required": true
                     },
                     {
                         "name": "profile",
                         "in": "body",
                         "schema": {
                             "$ref": "#/definitions/Profile"
-                        }
+                        },
+                        "required": true
                     }
                 ]
             }
@@ -274,11 +253,13 @@
                     {
                         "name": "user_id",
                         "in": "path",
-                        "type": "string"
+                        "type": "string",
+                        "required": true
                     },
                     {
                         "name": "password",
                         "in": "body",
+                        "required": true,
                         "schema": {
                             "properties": {
                                 "OldPwd": {
@@ -313,11 +294,13 @@
                     {
                         "name": "user_id",
                         "in": "path",
-                        "type": "string"
+                        "type": "string",
+                        "required": true
                     },
                     {
                         "name": "password",
                         "in": "body",
+                        "required": true,
                         "schema": {
                             "properties": {
                                 "NewPwd": {
@@ -348,11 +331,13 @@
                     {
                         "name": "user_id",
                         "in": "path",
-                        "type": "string"
+                        "type": "string",
+                        "required": true
                     },
                     {
                         "name": "approval",
                         "in": "body",
+                        "required": true,
                         "schema": {
                             "properties": {
                                 "Approved": {
@@ -380,11 +365,13 @@
                     {
                         "name": "user_id",
                         "in": "path",
-                        "type": "string"
+                        "type": "string",
+                        "required": true
                     },
                     {
                         "name": "group",
                         "in": "body",
+                        "required": true,
                         "schema": {
                             "properties": {
                                 "Id": {
@@ -409,12 +396,14 @@
                     {
                         "name": "user_id",
                         "in": "path",
-                        "type": "string"
+                        "type": "string",
+                        "required": true
                     },
                     {
                         "name": "group_id",
                         "in": "path",
-                        "type": "string"
+                        "type": "string",
+                        "required": true
                     }
                 ]
             }
@@ -435,6 +424,7 @@
                     {
                         "name": "group",
                         "in": "body",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/Group"
                         }
@@ -487,7 +477,8 @@
                     {
                         "name": "group_id",
                         "in": "path",
-                        "type": "string"
+                        "type": "string",
+                        "required": true
                     }
                 ]
             },
@@ -506,11 +497,13 @@
                     {
                         "name": "group_id",
                         "in": "path",
-                        "type": "string"
+                        "type": "string",
+                        "required": true
                     },
                     {
                         "name": "group",
                         "in": "body",
+                        "required": true,
                         "schema": {
                             "$ref": "#/definitions/Group"
                         }
@@ -529,7 +522,70 @@
                     {
                         "name": "group_id",
                         "in": "path",
-                        "type": "string"
+                        "type": "string",
+                        "required": true
+                    }
+                ]
+            }
+        },
+        "/settings": {
+            "get": {
+                "summary": "Get system settings. Require \"manage_setting\" privilege.",
+                "description": "Get system settings. Require \"manage_setting\" privilege.",
+                "responses": {
+                    "200": {
+                        "description": "Get sucess",
+                        "schema": {
+                            "type": "object",
+                            "description": "key/value settings object."
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "query",
+                        "type": "string",
+                        "description": "list of keys sperate by comma. Example \"key1,key2,key3\".",
+                        "required": true
+                    }
+                ]
+            },
+            "patch": {
+                "summary": "Update system settings. Require \"manage_setting\" privilege.",
+                "description": "Update system settings. Require \"manage_setting\" privilege.",
+                "responses": {
+                    "200": {
+                        "description": "Update sucess"
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "settings",
+                        "in": "body",
+                        "schema": {
+                            "type": "object"
+                        },
+                        "description": "key/value settings object.",
+                        "required": true
+                    }
+                ]
+            },
+            "delete": {
+                "summary": "Delete system settings. require \"manage_setting\" privilege.",
+                "description": "Delete system settings. require \"manage_setting\" privilege.",
+                "responses": {
+                    "200": {
+                        "description": "Delete success."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "key",
+                        "in": "query",
+                        "type": "string",
+                        "description": "list of keys sperate by comma. Example \"key1,key2,key3\".",
+                        "required": true
                     }
                 ]
             }
@@ -661,13 +717,6 @@
                     "$ref": "#/definitions/Group"
                 }
             }
-        }
-    },
-    "securityDefinitions": {
-        "bearer": {
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
         }
     }
 }
