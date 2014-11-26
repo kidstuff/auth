@@ -15,7 +15,9 @@ var (
 	OnlineThreshold = time.Hour
 	// HANDLER_REGISTER should be "overided" by the "manager". Implement of this function
 	// must use the "or" logic for the conditions.
-	HANDLER_REGISTER func(fn HandleFunc, owner bool, pri []string) http.Handler
+	HANDLER_REGISTER    func(fn HandleFunc, owner bool, pri []string) http.Handler
+	DEFAULT_NOTIFICATOR Notificator
+	DEFAULT_LOGGER      Logger
 )
 
 type ctxKey int
@@ -144,7 +146,7 @@ func BasicMngrHandler(authCtx *AuthContext, rw http.ResponseWriter, req *http.Re
 	authCtx.saveId(mux.Vars(req)["user_id"])
 
 	authCtx.Notifications = DEFAULT_NOTIFICATOR
-	authCtx.Logs, _ = NewSysLogger("kidstuff/auth")
+	authCtx.Logs = DEFAULT_LOGGER
 
 	rw.Header().Set("Content-Type", "application/json; charset=utf-8")
 	if cond.RequiredPri != nil || cond.Owner {
