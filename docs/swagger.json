@@ -44,8 +44,11 @@
                 "summary": "User active their account after regis.",
                 "description": "User active their account after regis.",
                 "responses": {
-                    "200": {
-                        "description": "User approval success."
+                    "204": {
+                        "description": "User approval success. But not redirect user to welcome page."
+                    },
+                    "303": {
+                        "description": "User approval success. Redirect user to welcome page."
                     }
                 },
                 "parameters": [
@@ -411,7 +414,7 @@
                 "description": "Redirect user to password reset UI page defined in setting. Note that this method do not check for valid user_id and code.",
                 "responses": {
                     "303": {
-                        "description": "See other."
+                        "description": "Redirecting user to password reset UI page."
                     }
                 },
                 "parameters": [
