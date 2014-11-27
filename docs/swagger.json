@@ -24,6 +24,9 @@
                     "200": {
                         "description": "New user registerd (may waiting for approval)."
                     },
+                    "202": {
+                        "description": "New account created but failed to send activate email."
+                    },
                     "400": {
                         "description": "Invalid Credential."
                     },
@@ -271,6 +274,10 @@
                                 },
                                 "NewPwdRepeat": {
                                     "type": "string"
+                                },
+                                "ResetCode": {
+                                    "type": "string",
+                                    "description": "password reset code to use instead of OldPwd. See /password/reset for more."
                                 }
                             }
                         }
@@ -311,6 +318,113 @@
                                 }
                             }
                         }
+                    }
+                ]
+            }
+        },
+        "/users/{user_id}/password/reset": {
+            "put": {
+                "summary": "Change password by reset code.",
+                "description": "Change user password action by given a reset code.",
+                "responses": {
+                    "200": {
+                        "description": "Change password success."
+                    },
+                    "400": {
+                        "description": "NewPwd and NewPwdrepeat not match."
+                    },
+                    "412": {
+                        "description": "Reset code incorrect."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "type": "string",
+                        "required": true
+                    },
+                    {
+                        "name": "password",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "properties": {
+                                "NewPwd": {
+                                    "type": "string"
+                                },
+                                "NewPwdRepeat": {
+                                    "type": "string"
+                                },
+                                "ResetCode": {
+                                    "type": "string",
+                                    "description": "password reset code to use instead of OldPwd. See /password/reset for more."
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "/password/reset": {
+            "post": {
+                "summary": "Create a password reset code to change password without the current password.",
+                "description": "Create a password reset code to change password without the current password.",
+                "responses": {
+                    "200": {
+                        "description": "Create success."
+                    },
+                    "400": {
+                        "description": "Bad request."
+                    },
+                    "412": {
+                        "description": "given email not found."
+                    },
+                    "500": {
+                        "description": "internal error."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "issue",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "properties": {
+                                "Email": {
+                                    "type": "string",
+                                    "require": true
+                                },
+                                "Resend": {
+                                    "type": "boolean",
+                                    "description": "Set to true to force resend email."
+                                }
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        "/password/reset/{user_id}": {
+            "get": {
+                "summary": "Redirect user to password reset UI page.",
+                "description": "Redirect user to password reset UI page defined in setting. Note that this method do not check for valid user_id and code.",
+                "responses": {
+                    "303": {
+                        "description": "See other."
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "user_id",
+                        "in": "path",
+                        "required": true,
+                        "type": "string"
+                    },
+                    {
+                        "name": "code",
+                        "in": "query",
+                        "type": "string"
                     }
                 ]
             }
