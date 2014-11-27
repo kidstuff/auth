@@ -92,8 +92,8 @@ func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (in
 		err = sendActivateMail(authCtx, *u.Id, *u.Email, u.ConfirmCodes["activate"])
 		if err != nil {
 			authCtx.Logs.Errorf("Active mail failed: %s", err)
+			status = http.StatusAccepted
 		}
-		status = http.StatusAccepted
 	}
 
 	json.NewEncoder(rw).Encode(u)
@@ -132,10 +132,9 @@ func Activate(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 	activate_redirect, err := authCtx.Settings.Get("auth_activate_redirect")
 	if err != nil {
 		authCtx.Logs.Errorf("Error when fetching 'auth_activate_redirect' settings")
-		rw.Write([]byte(`{"Message":"Account activated"}`))
+		return http.StatusNoContent, nil
 	} else {
 		http.Redirect(rw, req, activate_redirect, http.StatusSeeOther)
-		rw.Write([]byte(`{"Message":"Account activated", "RedirectTo": "` + activate_redirect + `"}`))
 	}
 
 	return http.StatusOK, nil
