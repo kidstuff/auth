@@ -30,6 +30,15 @@ func Serve(router *mux.Router) {
 	router.Handle("/users/{user_id}/password/override",
 		HANDLER_REGISTER(OverridePassword, false, []string{"manage_user"})).Methods("PUT")
 
+	router.Handle("/users/{user_id}/password/reset",
+		HANDLER_REGISTER(ResetPassword, false, nil)).Methods("PUT")
+
+	router.Handle("/password/reset",
+		HANDLER_REGISTER(CreatePasswordResetIssue, false, nil)).Methods("POST")
+
+	router.Handle("/password/reset/{user_id}",
+		HANDLER_REGISTER(RedirectPasswordReset, false, nil)).Methods("GET")
+
 	router.Handle("/users/{user_id}",
 		HANDLER_REGISTER(GetUser, true, []string{"manage_user"})).Methods("GET")
 
