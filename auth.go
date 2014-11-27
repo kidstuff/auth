@@ -12,12 +12,16 @@ import (
 )
 
 var (
-	OnlineThreshold = time.Hour
 	// HANDLER_REGISTER should be "overided" by the "manager". Implement of this function
 	// must use the "or" logic for the conditions.
-	HANDLER_REGISTER    func(fn HandleFunc, owner bool, pri []string) http.Handler
+	HANDLER_REGISTER func(fn HandleFunc, owner bool, pri []string) http.Handler
+	// DEFAULT_NOTIFICATOR should be "overided" by the "manager".
 	DEFAULT_NOTIFICATOR Notificator
-	DEFAULT_LOGGER      Logger
+	// DEFAULT_LOGGER should be "overided" by the "manager".
+	DEFAULT_LOGGER Logger
+
+	OnlineThreshold = time.Hour
+	HandleTimeout   = time.Minute * 2
 )
 
 type ctxKey int
@@ -138,7 +142,7 @@ type Condition struct {
 // authmodel.UserManager, authmodel.GroupManager, conf.Configurator...etc
 func BasicMngrHandler(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request, cond *Condition, fn HandleFunc) {
 	var cancel context.CancelFunc
-	authCtx.Context, cancel = context.WithTimeout(context.Background(), time.Minute*2)
+	authCtx.Context, cancel = context.WithTimeout(context.Background(), HandleTimeout)
 	defer cancel()
 
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
