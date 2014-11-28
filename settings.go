@@ -6,6 +6,7 @@ import (
 	"strings"
 )
 
+// UpdateSettings document: http://kidstuff.github.io/swagger/#!/default/settings_patch
 func UpdateSettings(ctx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	settings := map[string]string{}
 	err := json.NewDecoder(req.Body).Decode(&settings)
@@ -22,6 +23,7 @@ func UpdateSettings(ctx *AuthContext, rw http.ResponseWriter, req *http.Request)
 	return http.StatusOK, nil
 }
 
+// GetSettings document: http://kidstuff.github.io/swagger/#!/default/settings_get
 func GetSettings(ctx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	keys := strings.Split(req.FormValue("keys"), ",")
 	if len(keys) == 0 {
@@ -41,6 +43,7 @@ func GetSettings(ctx *AuthContext, rw http.ResponseWriter, req *http.Request) (i
 	return http.StatusOK, nil
 }
 
+// DeleteSettings document: http://kidstuff.github.io/swagger/#!/default/settings_delete
 func DeleteSettings(ctx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	keys := strings.Split(req.FormValue("keys"), ",")
 	if len(keys) == 0 {

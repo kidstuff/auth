@@ -55,6 +55,8 @@ func sendActivateMail(ctx *AuthContext, id, email, code string) error {
 		mailSettings["auth_email_from"], email)
 }
 
+// SignUp handle registration action.
+// Details: http://kidstuff.github.io/swagger/#!/default/signup_post
 func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	credential := struct {
 		Email     string
@@ -100,6 +102,8 @@ func SignUp(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (in
 	return status, nil
 }
 
+// Activate handle user activation action. If success change user Approved to true.
+// Details: http://kidstuff.github.io/swagger/#!/default/users_user_id_active_get
 func Activate(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	vars := mux.Vars(req)
 	sid := vars["user_id"]

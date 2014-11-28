@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// CreateGroup document: http://kidstuff.github.io/swagger/#!/default/groups_post
 func CreateGroup(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	groups := &authmodel.Group{}
 	err := json.NewDecoder(req.Body).Decode(groups)
@@ -48,6 +49,7 @@ func findGroup(ctx *AuthContext, req *http.Request) (*authmodel.Group, int, erro
 	return g, http.StatusOK, nil
 }
 
+// UpdateGroup document: http://kidstuff.github.io/swagger/#!/default/groups_group_id_patch
 func UpdateGroup(ctx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	g, stt, err := findGroup(ctx, req)
 	if err != nil {
@@ -71,6 +73,7 @@ func UpdateGroup(ctx *AuthContext, rw http.ResponseWriter, req *http.Request) (i
 	return http.StatusOK, nil
 }
 
+// GetGroup document: http://kidstuff.github.io/swagger/#!/default/groups_group_id_get
 func GetGroup(ctx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	g, stt, err := findGroup(ctx, req)
 	if err != nil {
@@ -85,6 +88,7 @@ func GetGroup(ctx *AuthContext, rw http.ResponseWriter, req *http.Request) (int,
 	return http.StatusOK, nil
 }
 
+// DeleteGroup document: http://kidstuff.github.io/swagger/#!/default/groups_group_id_delete
 func DeleteGroup(ctx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	sid := mux.Vars(req)["group_id"]
 	if len(sid) == 0 {
@@ -99,6 +103,7 @@ func DeleteGroup(ctx *AuthContext, rw http.ResponseWriter, req *http.Request) (i
 	return http.StatusOK, nil
 }
 
+// ListGroup document: http://kidstuff.github.io/swagger/#!/default/groups_get
 func ListGroup(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	limit, err := strconv.Atoi(req.FormValue("limit"))
 	if err != nil {

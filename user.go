@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+// CreateUser handle create new user accoutn action. Require "manage_user" privilege.
+// Details: http://kidstuff.github.io/swagger/#!/default/users_post
 func CreateUser(ctx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	info := struct {
 		Email     string
@@ -57,6 +59,8 @@ func findUser(ctx *AuthContext, req *http.Request) (*authmodel.User, int, error)
 	return u, http.StatusOK, nil
 }
 
+// GetUser return full user account data. Require "manage_user" privilege.
+// Details: http://kidstuff.github.io/swagger/#!/default/users_user_id_get
 func GetUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	u, stt, err := findUser(authCtx, req)
 	if err != nil {
@@ -71,6 +75,8 @@ func GetUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (i
 	return http.StatusOK, nil
 }
 
+// DeleteUser handle delete user account action. Require "manage_user" privilege.
+// Details: http://kidstuff.github.io/swagger/#!/default/users_user_id_delete
 func DeleteUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	sid := mux.Vars(req)["user_id"]
 	if len(sid) == 0 {
@@ -85,6 +91,8 @@ func DeleteUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request)
 	return http.StatusOK, nil
 }
 
+// UpdateUserProfile handle user's profile update action. Require "owner" or "manage_user" privilege.
+// Details: http://kidstuff.github.io/swagger/#!/default/users_user_id_profile_patch
 func UpdateUserProfile(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	u, stt, err := findUser(authCtx, req)
 	if err != nil {
@@ -106,6 +114,8 @@ func UpdateUserProfile(authCtx *AuthContext, rw http.ResponseWriter, req *http.R
 	return http.StatusOK, nil
 }
 
+// ListUser handle user list action. Require "manage_user" privilege.
+// Details: http://kidstuff.github.io/swagger/#!/default/users_get
 func ListUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	limit, err := strconv.Atoi(req.FormValue("limit"))
 	if err != nil {
@@ -149,6 +159,8 @@ func ListUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (
 	return http.StatusOK, nil
 }
 
+// UpdateApprovedStatus handle user arppoval status update action. Require "manage_user" privilege.
+// Details: http://kidstuff.github.io/swagger/#!/default/users_user_id_approve_put
 func UpdateApprovedStatus(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	u, stt, err := findUser(authCtx, req)
 	if err != nil {
@@ -170,6 +182,8 @@ func UpdateApprovedStatus(authCtx *AuthContext, rw http.ResponseWriter, req *htt
 	return http.StatusOK, nil
 }
 
+// AddGroupToUser add group to user. Require "manage_user" privilege.
+// Details: http://kidstuff.github.io/swagger/#!/default/users_user_id_groups_put
 func AddGroupToUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	u, stt, err := findUser(authCtx, req)
 	if err != nil {
@@ -203,6 +217,7 @@ func AddGroupToUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Requ
 	return http.StatusOK, nil
 }
 
+// RemoveGroupFromUser document: http://kidstuff.github.io/swagger/#!/default/users_user_id_groups_group_id_delete
 func RemoveGroupFromUser(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	params := mux.Vars(req)
 	sid := params["user_id"]

@@ -8,6 +8,8 @@ import (
 	"time"
 )
 
+// GetToken handle 'login' action. The token return use to verify later reuqest.
+// Details: http://kidstuff.github.io/swagger/#!/default/tokens_get
 func GetToken(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	grantType := req.FormValue("grant_type")
 	email := req.FormValue("email")

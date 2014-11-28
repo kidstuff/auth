@@ -8,7 +8,8 @@ import (
 	"regexp"
 )
 
-// FormatChecker is a helper interface, a "manager" donnot need to implement it.
+// FormatChecker is a helper interface for check formating of user input.
+// Currently only Password and Email available.
 type FormatChecker interface {
 	// PasswordValidate validate password strength.
 	PasswordValidate(string) bool
@@ -16,6 +17,7 @@ type FormatChecker interface {
 	EmailValidate(string) bool
 }
 
+// SimpleChecker implement FormatChecker and ... very simple.
 type SimpleChecker struct {
 	emailregex *regexp.Regexp
 	pwdlen     int

@@ -12,14 +12,17 @@ import (
 	"strings"
 )
 
+// OverridePassword document: http://kidstuff.github.io/swagger/#!/default/users_user_id_password_override_put
 func OverridePassword(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	return updatePassword(authCtx, req, true, false)
 }
 
+// ChangePassword document: http://kidstuff.github.io/swagger/#!/default/users_user_id_password_put
 func ChangePassword(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	return updatePassword(authCtx, req, false, false)
 }
 
+// ResetPassword document: http://kidstuff.github.io/swagger/#!/default/users_user_id_password_reset_put
 func ResetPassword(authCtx *AuthContext, rw http.ResponseWriter, req *http.Request) (int, error) {
 	return updatePassword(authCtx, req, false, true)
 }

@@ -13,11 +13,13 @@ type Manager interface {
 	// If app is false, the user is waiting to be approved.
 	// Implement of this method should valid email, pwd and make sure the user
 	// email are unique then initial the LastActivity and JoinDay.
+	// Remember to generate ConfirmCodes["activate"] a secure random value.
 	// It returns an error describes the first issue encountered, if any.
 	AddUser(email, pwd string, app bool) (*User, error)
 	// AddUserDetail add a User with full detail to database.
 	// Implement of this method should valid email, pwd and make sure the user
 	// email are unique then initial the LastActivity and JoinDay.
+	// Remember to generate ConfirmCodes["activate"] a secure random value.
 	// It returns an error describes the first issue encountered, if any.
 	AddUserDetail(email, pwd string, app bool, pri []string,
 		code map[string]string, profile *Profile, groupIds []string) (*User, error)
