@@ -10,11 +10,11 @@ func Serve(router *mux.Router) {
 	}
 
 	if DEFAULT_NOTIFICATOR == nil {
-		panic("kidstuff/auth: DEFAULT_NOTIFICATOR need to be overide by a mngr")
+		panic("kidstuff/auth: DEFAULT_NOTIFICATOR need to be overide")
 	}
 
 	if DEFAULT_LOGGER == nil {
-		panic("kidstuff/auth: DEFAULT_LOGGER need to be overide by a mngr")
+		panic("kidstuff/auth: DEFAULT_LOGGER need to be overide")
 	}
 
 	router.Handle("/signup", HANDLER_REGISTER(SignUp, false, nil))

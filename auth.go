@@ -2,6 +2,7 @@ package auth
 
 import (
 	"code.google.com/p/go.net/context"
+	gorillactx "github.com/gorilla/context"
 	"github.com/gorilla/mux"
 	"github.com/kidstuff/auth/authmodel"
 	"github.com/kidstuff/conf"
@@ -24,6 +25,23 @@ var (
 	HandleTimeout   = time.Minute * 2
 )
 
+type HandleFunc func(*AuthContext, http.ResponseWriter, *http.Request) (int, error)
+
+type ctxWrapper struct {
+	context.Context
+	req *http.Request
+}
+
+// Value returns Gorilla's context package's value for this Context's request
+// and key. It delegates to the parent Context if there is no such value.
+func (ctx *ctxWrapper) Value(key interface{}) interface{} {
+	if val, ok := gorillactx.GetOk(ctx.req, key); ok {
+		return val
+	}
+
+	return ctx.Context.Value(key)
+}
+
 type ctxKey int
 
 const (
@@ -31,10 +49,8 @@ const (
 	userIdKey
 )
 
-type HandleFunc func(*AuthContext, http.ResponseWriter, *http.Request) (int, error)
-
 type AuthContext struct {
-	context.Context
+	ctxWrapper
 	Auth          authmodel.Manager
 	Settings      conf.Configurator
 	Notifications Notificator
@@ -145,6 +161,7 @@ func BasicMngrHandler(authCtx *AuthContext, rw http.ResponseWriter, req *http.Re
 	authCtx.Context, cancel = context.WithTimeout(context.Background(), HandleTimeout)
 	defer cancel()
 
+	authCtx.req = req
 	token := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
 	authCtx.saveToken(token)
 	authCtx.saveId(mux.Vars(req)["user_id"])
