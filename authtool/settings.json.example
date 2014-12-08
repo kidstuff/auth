@@ -1,0 +1,15 @@
+{
+    "auth_full_path": "http://localhost:8080/auth",
+    "auth_activate_redirect": "http://localhost:8081/#!/welcome",
+    "auth_approve_new_user": "false",
+    "auth_email_from": "nvcnvn1@gmail.com",
+    "auth_send_activate_email": "true",
+    "auth_activate_email_subject": "Active your account",
+    "auth_activate_email_message": "Hi!\nPlease active your account by cliking here:\n%s",
+    "auth_send_welcome_email": "true",
+    "auth_welcome_email_subject": "Welcome!",
+    "auth_welcome_email_message": "Hi!\nWelcome you to join our community :)",
+    "auth_reset_redirect": "http://localhost:8081/#!/resetpassword/%s/%s",
+    "auth_reset_email_subject": "Password reset request",
+    "auth_reset_email_message": "Hi!\nTo reset your password please click the link bellow:\n%s"
+}
