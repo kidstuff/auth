@@ -19,7 +19,7 @@ func Serve(router *mux.Router) {
 
 	router.Handle("/signup", HANDLER_REGISTER(SignUp, false, nil))
 	router.Handle("/tokens",
-		HANDLER_REGISTER(GetToken, false, nil))
+		HANDLER_REGISTER(GetToken, false, nil)).Methods("POST")
 
 	router.Handle("/users/{user_id}/activate",
 		HANDLER_REGISTER(Activate, false, nil))

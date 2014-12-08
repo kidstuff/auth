@@ -69,7 +69,7 @@
             }
         },
         "/tokens": {
-            "get": {
+            "post": {
                 "summary": "Obtain access token.",
                 "description": "Obtain access token. Current only support password grant type.",
                 "responses": {

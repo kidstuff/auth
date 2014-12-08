@@ -66,7 +66,8 @@ func (ctx *AuthContext) saveId(id string) {
 	ctx.Context = context.WithValue(ctx.Context, userIdKey, id)
 }
 
-// ValidCurrentUser validate user privilege and cacuate user total privilege base on groups
+// ValidCurrentUser validate user privilege and cacuate user total privilege base on groups.
+// In some case a non-nil *authmodel.User object still return with an error.
 func (ctx *AuthContext) ValidCurrentUser(owner bool, pri []string) (*authmodel.User, error) {
 	if ctx.currentUser == nil {
 		//try to query current user
@@ -113,40 +114,39 @@ func (ctx *AuthContext) ValidCurrentUser(owner bool, pri []string) (*authmodel.U
 	return ctx.currentUser, err
 }
 
-func validCurrentUser(authCtx *AuthContext, user *authmodel.User, owner bool, privilege []string) error {
-	validPri := func() error {
-		// check if any privileges of the current user match one of the required privileges
-		if len(privilege) > 0 {
-			foundPri := false
-		LOOP_PRI:
-			for _, pri := range user.Privileges {
-				for _, p := range privilege {
-					if pri == p {
-						foundPri = true
-						break LOOP_PRI
-					}
+func validPri(userPri, requirePri []string) bool {
+	if len(requirePri) > 0 {
+		for _, up := range userPri {
+			for _, rp := range requirePri {
+				if up == rp {
+					return true
 				}
-			}
-
-			if !foundPri {
-				return ErrForbidden
 			}
 		}
 
-		return nil
+		return false
 	}
 
+	return true
+}
+
+func validCurrentUser(authCtx *AuthContext, user *authmodel.User, owner bool, privilege []string) error {
 	// check for the current user
 	if owner {
 		sid, ok := authCtx.Context.Value(userIdKey).(string)
 		if !ok || len(sid) == 0 || sid != *user.Id {
-			if validPri() != nil {
-				return ErrForbidden
+			if len(privilege) > 0 && validPri(user.Privileges, privilege) {
+				return nil
 			}
+			return ErrForbidden
 		}
 	}
 
-	return validPri()
+	if !validPri(user.Privileges, privilege) {
+		return ErrForbidden
+	}
+
+	return nil
 }
 
 type Condition struct {
