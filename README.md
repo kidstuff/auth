@@ -3,7 +3,7 @@ About auth
 [![GoDoc](http://godoc.org/github.com/kidstuff/auth?status.svg)](http://godoc.org/github.com/kidstuff/auth)  
 An authentication, authorization and user management service wrtien in Go
 
-The package provide you 3 ways to use it:  
+The project provide you 3 ways to use it:  
 
   - A [HTTP REST API](http://kidstuff.github.io/swagger/#!/default) for authentication, authorization and user management.
   - The clients for easy communication with the REST server.
@@ -33,4 +33,5 @@ TODO
 
 Community
 ====
-https://groups.google.com/forum/#!forum/kidstuff-opensources
+https://groups.google.com/forum/#!forum/kidstuff-opensources  
+We welcome any feedback, bug report, feature request or just a "Hello" from you!
