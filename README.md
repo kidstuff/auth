@@ -16,12 +16,20 @@ Documentation
 Please prefer:
 * https://github.com/kidstuff/auth/wiki
 * http://godoc.org/github.com/kidstuff/auth
-* http://kidstuff.github.io/swagger/#!/default
+* http://kidstuff.github.io/swagger/#!/default  
+
 Each sub project may have their own document.
 
 Example
 ====
 You can find and usage example of the package at https://github.com/kidstuff/auth-example  
+
+TODO
+====
+* Fix bugs, improve documentation, more test (not many test right now)
+* Support other type of "grant_type", become an OAuth provider.
+* Better way to handle "permission" (or friendship) becom a social network.
+* A complete example application (a small social network...maybe)
 
 Community
 ====
