@@ -53,7 +53,7 @@ type Manager interface {
 	// Login logs user in by given user id.
 	// Stay is the duration to keep the user Login state.
 	// It returns a token string, use the token to keep track on the user with
-	// Get or Logout.
+	// Get or Logout. A new call to Login must exprire all old token.
 	Login(id string, stay time.Duration) (string, error)
 	// Logout logs the current user out.
 	Logout(token string) error
