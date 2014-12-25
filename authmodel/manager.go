@@ -43,9 +43,6 @@ type Manager interface {
 	// If limit can't be greater than the default upper limit.
 	// Specific fields name for porjection select.
 	FindAllUser(limit int, offsetId string, fields []string, groupIds []string) ([]*User, error)
-	// FindAllUserOnline finds and return a slice of current Loged user.
-	// See FindAll for the usage.
-	FindAllUserOnline(limit int, offsetId string, fields []string) ([]*User, error)
 	// GetUser gets the infomations and update the LastActivity of the current
 	// loged user by the token (given by Login method);
 	// It returns an error describes the first issue encountered, if any.
@@ -53,10 +50,10 @@ type Manager interface {
 	// Login logs user in by given user id.
 	// Stay is the duration to keep the user Login state.
 	// It returns a token string, use the token to keep track on the user with
-	// Get or Logout. A new call to Login must exprire all old token.
+	// GetUser or Logout.
 	Login(id string, stay time.Duration) (string, error)
-	// Logout logs the current user out.
-	Logout(token string) error
+	// Logout logs the current user out. if all, logout all session of the same user.
+	Logout(token string, all bool) error
 	// ComparePassword cmapres the given passwod string with the hashed password of the
 	// User struct.
 	ComparePassword(ps string, pwd *Password) error
