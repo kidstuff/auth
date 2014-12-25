@@ -15,6 +15,7 @@ import (
 var (
 	ErrInvalidId       = errors.New("auth: invalid id")
 	ErrInvalidEmail    = errors.New("auth: invalid email address")
+	ErrInvalidToken    = errors.New("auth: invlaid token")
 	ErrDuplicateEmail  = errors.New("auth: duplicate email address")
 	ErrInvalidPassword = errors.New("auth: invalid password")
 	ErrNotLogged       = errors.New("auth: no login user found")
